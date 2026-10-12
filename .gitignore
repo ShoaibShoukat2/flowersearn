@@ -1,0 +1,53 @@
+# Secrets. On the server copy core/.env.example to core/.env and fill in real values.
+.env
+.env.backup
+.env.production
+!.env.example
+
+# Database export. Import u884652649_flowersearn.sql on the server
+# (phpMyAdmin or mysql). It is over GitHub's 50MB file warning.
+*.sql
+
+# User verification photos (about 1.5GB, and the same files again under core/public).
+# These are private uploads. Copy the folder to the server with FTP or scp.
+# Do not put them on GitHub.
+/assets/verify/
+/core/public/assets/verify/
+
+# Dependencies. After pull, inside core run: composer install --no-dev --optimize-autoloader
+vendor/
+node_modules/
+
+# Laravel runtime (logs include a 144MB file GitHub would reject)
+storage/logs/*
+!storage/logs/.gitignore
+storage/framework/cache/data/*
+!storage/framework/cache/data/.gitignore
+storage/framework/sessions/*
+!storage/framework/sessions/.gitignore
+storage/framework/views/*
+!storage/framework/views/.gitignore
+storage/debugbar/*
+!storage/debugbar/.gitignore
+bootstrap/cache/*.php
+!bootstrap/cache/.gitignore
+
+# Archives and local debug files
+*.zip
+*.tar.gz
+phpinfo.php
+test_gd_web.php
+error_log
+query_plans_temp.php
+PremiumGiftBox.html
+.phpunit.result.cache
+npm-debug.log
+yarn-error.log
+Homestead.json
+Homestead.yaml
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
