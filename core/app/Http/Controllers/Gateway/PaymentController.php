@@ -393,12 +393,11 @@ class PaymentController extends Controller
             $validationRule['sender_number'] = 'required|string|max:30';
         }
         if ($prepared['needs_screenshot']) {
-            $validationRule['payment_screenshot'] = 'required|file|mimes:jpg,jpeg,png,webp|max:8192';
+            $validationRule['payment_screenshot'] = 'required|file|mimes:jpg,jpeg,png,webp';
         }
         $request->validate($validationRule, [
             'payment_screenshot.required' => 'Please upload the payment screenshot.',
             'payment_screenshot.mimes' => 'Payment screenshot must be a JPG, PNG, or WEBP image.',
-            'payment_screenshot.max' => 'Payment screenshot must be smaller than 8MB.',
         ]);
         $userData = $formProcessor->processFormData($request, $formData);
 

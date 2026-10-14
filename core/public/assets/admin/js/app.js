@@ -192,8 +192,13 @@ $(document).on('input','input[name=search_table]',function(){
 
 $('.pagination').closest('nav').addClass('float-end');
 
-$('.showFilterBtn').on('click',function(){
-  $('.responsive-filter-card').slideToggle();
+$(document).on('click', '.showFilterBtn', function (e) {
+  e.preventDefault();
+  var $card = $(this).closest('.show-filter').next('.responsive-filter-card');
+  if (!$card.length) {
+    $card = $(this).closest('.row').find('.responsive-filter-card').first();
+  }
+  $card.toggleClass('filter-open');
 });
 
 $('.short-codes').click(function () {

@@ -603,8 +603,7 @@ body{background:#fdf0f7 !important;}
 
     {{-- Official channels, then the review timer --}}
     @php
-        $communityLink = whatsappCommunityLink();
-        $channelLink = whatsappChannelLink();
+        $pendingChannels = officialChannels();
         $channelsJoinedAt = !empty($pendingDeposit) ? ($pendingDeposit->channels_joined_at ?? null) : null;
     @endphp
     <div class="pnd-card">
@@ -613,7 +612,20 @@ body{background:#fdf0f7 !important;}
             <span>Join Official Channels</span>
         </div>
         <div class="pnd-channel-body">
-            <p class="pnd-channel-copy">Join both official channels for important updates and training. The review timer starts only after you confirm.</p>
+            <p class="pnd-channel-copy">Join the official channels for important updates and training. The review timer starts only after you confirm.</p>
+            @forelse($pendingChannels as $pendingChannel)
+            <a href="{{ $pendingChannel->link }}" target="_blank" rel="noopener noreferrer" class="pnd-channel">
+                <div class="pnd-channel-icon"><i class="{{ str_contains((string) $pendingChannel->icon, 'fa-') ? $pendingChannel->icon : 'fab fa-whatsapp' }}"></i></div>
+                <div>
+                    <h4>{{ $pendingChannel->title }}</h4>
+                    <p>{{ $pendingChannel->purpose ?: 'Tap to join this channel' }}</p>
+                </div>
+            </a>
+            @empty
+            @php
+                $communityLink = whatsappCommunityLink();
+                $channelLink = whatsappChannelLink();
+            @endphp
             <a href="{{ $communityLink ?: '#' }}" target="_blank" rel="noopener noreferrer" class="pnd-channel {{ $communityLink ? '' : 'disabled' }}">
                 <div class="pnd-channel-icon"><i class="fab fa-whatsapp"></i></div>
                 <div>
@@ -628,6 +640,7 @@ body{background:#fdf0f7 !important;}
                     <p>{{ $channelLink ? 'Tap to join the channel' : 'Channel link is not added yet' }}</p>
                 </div>
             </a>
+            @endforelse
             @if(!empty($pendingDeposit) && empty($channelsJoinedAt))
             <form action="{{ route('user.pending.channels') }}" method="POST">
                 @csrf

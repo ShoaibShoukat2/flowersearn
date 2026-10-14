@@ -86,7 +86,7 @@ class FormProcessor
                 if ($extensions === '' || $extensions === 'null') {
                     $extensions = 'jpg,jpeg,png,webp';
                 }
-                $rule = array_merge($rule, ['mimes:'.$extensions, 'max:8192']);
+                $rule = array_merge($rule, ['mimes:'.$extensions]);
             }
             if ($data->type == 'checkbox') {
                 $validationRule[$data->label.'.*'] = $rule;

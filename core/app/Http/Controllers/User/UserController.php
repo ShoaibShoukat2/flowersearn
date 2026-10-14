@@ -593,14 +593,9 @@ class UserController extends Controller
     public function channels()
     {
         $pageTitle = 'Official Channels';
-        $communityLink = whatsappCommunityLink();
-        $channelLink = whatsappChannelLink();
+        $channels = officialChannels();
 
-        return view($this->activeTemplate . 'user.channels', compact(
-            'pageTitle',
-            'communityLink',
-            'channelLink'
-        ));
+        return view($this->activeTemplate . 'user.channels', compact('pageTitle', 'channels'));
     }
 
     public function rewards()

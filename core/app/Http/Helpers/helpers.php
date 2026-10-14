@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\User;
 use App\Models\Plan;
 use App\Models\Deposit;
+use App\Models\OfficialChannel;
 
 function systemDetails()
 {
@@ -247,6 +248,44 @@ function getPaginate($paginate = 20)
 function paginateLinks($data)
 {
     return $data->appends(request()->all())->links();
+}
+
+function parseAdminDate(?string $value): ?Carbon
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return null;
+    }
+
+    foreach (['m/d/Y', 'n/j/Y', 'Y-m-d', 'd/m/Y'] as $format) {
+        try {
+            $date = Carbon::createFromFormat($format, $value);
+            if ($date instanceof Carbon) {
+                return $date;
+            }
+        } catch (\Throwable $e) {
+        }
+    }
+
+    return null;
+}
+
+function parseAdminDateRange(?string $value): ?array
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return null;
+    }
+
+    $parts = preg_split('/\s+-\s+/', $value);
+    $start = parseAdminDate(trim((string) ($parts[0] ?? '')));
+    if (!$start) {
+        return null;
+    }
+
+    $end = parseAdminDate(trim((string) ($parts[1] ?? ''))) ?: $start->copy();
+
+    return [$start->copy()->startOfDay(), $end->copy()->endOfDay()];
 }
 
 
@@ -867,6 +906,128 @@ if (!function_exists('whatsappChannelLink')) {
     {
         $link = trim((string) (gs()->whatsapp_channel_link ?? ''));
         return $link !== '' ? $link : null;
+    }
+}
+
+if (!function_exists('ensureOfficialChannelsTable')) {
+    function ensureOfficialChannelsTable(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+
+        try {
+            if (!Schema::hasTable('official_channels')) {
+                Schema::create('official_channels', function ($table) {
+                    $table->id();
+                    $table->string('title');
+                    $table->string('purpose')->nullable();
+                    $table->text('description')->nullable();
+                    $table->string('link', 500);
+                    $table->string('icon')->nullable();
+                    $table->boolean('status')->default(true);
+                    $table->unsignedInteger('sort_order')->default(0);
+                    $table->timestamps();
+                });
+                seedOfficialChannelsFromLegacyLinks();
+            }
+
+            $done = true;
+        } catch (\Throwable $e) {
+            Log::error('Unable to prepare official channels table: ' . $e->getMessage());
+        }
+    }
+}
+
+if (!function_exists('seedOfficialChannelsFromLegacyLinks')) {
+    function seedOfficialChannelsFromLegacyLinks(): void
+    {
+        if (OfficialChannel::query()->exists()) {
+            return;
+        }
+
+        $general = gs();
+        $now = now();
+        $rows = [];
+        $community = trim((string) ($general->whatsapp_community_link ?? ''));
+        $channel = trim((string) ($general->whatsapp_channel_link ?? ''));
+
+        if ($community !== '') {
+            $rows[] = [
+                'title' => 'Flowers Official Community',
+                'purpose' => 'Community | Guidelines | Support',
+                'description' => 'Official community group for members.',
+                'link' => $community,
+                'icon' => 'fab fa-whatsapp',
+                'status' => 1,
+                'sort_order' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if ($channel !== '') {
+            $rows[] = [
+                'title' => 'Flowers Official Channel',
+                'purpose' => 'Trainings | Guidelines | Earning Tips',
+                'description' => 'Trainings, working guidelines, important instructions and earning tips.',
+                'link' => $channel,
+                'icon' => 'fas fa-broadcast-tower',
+                'status' => 1,
+                'sort_order' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if ($rows) {
+            OfficialChannel::insert($rows);
+        }
+    }
+}
+
+if (!function_exists('memberDisplayName')) {
+    function memberDisplayName($user): string
+    {
+        if (!$user) {
+            return 'Member';
+        }
+
+        $name = trim(User::composeDisplayName(
+            $user->first_name ?? $user->firstname ?? '',
+            $user->last_name ?? $user->lastname ?? '',
+            ''
+        ));
+
+        if ($name === '' || strcasecmp($name, (string) ($user->username ?? '')) === 0) {
+            $emailName = strstr((string) ($user->email ?? ''), '@', true);
+            return $emailName !== false && $emailName !== '' ? $emailName : 'Member';
+        }
+
+        return $name;
+    }
+}
+
+if (!function_exists('officialChannels')) {
+    function officialChannels(bool $enabledOnly = true)
+    {
+        ensureOfficialChannelsTable();
+
+        try {
+            $channels = OfficialChannel::orderBy('sort_order')->orderBy('id')->get();
+        } catch (\Throwable $e) {
+            Log::error('Unable to load official channels: ' . $e->getMessage());
+            return collect();
+        }
+
+        if (!$enabledOnly) {
+            return $channels;
+        }
+
+        return $channels->where('status', 1)->filter(function ($channel) {
+            return trim((string) $channel->link) !== '';
+        })->values();
     }
 }
 

@@ -306,10 +306,10 @@
             <div style="overflow:hidden;min-width:0;">
                 @php
                     $u = auth()->user();
-                    $dn = $u->fullname ?: ($u->email ?: 'User');
+                    $dn = $u ? ($u->fullname ?: ($u->email ?: 'User')) : 'Guest';
                 @endphp
                 <div class="fl-sb-uname">{{ $dn }}</div>
-                <div class="fl-sb-plan">@if(auth()->user()->plan){{ auth()->user()->plan->name }}@else Free Plan @endif</div>
+                <div class="fl-sb-plan">@if($u && $u->plan){{ $u->plan->name }}@else Free Plan @endif</div>
             </div>
         </div>
 
@@ -336,7 +336,7 @@
                 <a href="{{ url('/user/withdraw-history') }}">History</a>
             </div>
 
-            @if(auth()->user()->plan_id)
+            @if($u && $u->plan_id)
             <a href="{{ route('user.plan.upgrade.index') }}" class="fl-nav-link {{ request()->routeIs('user.plan.upgrade.*') ? 'active' : '' }}">
                 <i class="fas fa-level-up-alt"></i> Plan Upgrade
             </a>
@@ -358,17 +358,23 @@
                 <i class="fas fa-envelope"></i> Contact Us
             </a>
 
+            @php $sidebarChannels = officialChannels(); @endphp
+            @forelse($sidebarChannels as $sidebarChannel)
+            <a href="{{ $sidebarChannel->link }}" target="_blank" rel="noopener noreferrer" class="fl-nav-link">
+                <i class="{{ str_contains((string) $sidebarChannel->icon, 'fa-') ? $sidebarChannel->icon : 'fas fa-bullhorn' }}"></i> {{ $sidebarChannel->title }}
+            </a>
+            @empty
             @if(whatsappChannelLink())
             <a href="{{ whatsappChannelLink() }}" target="_blank" rel="noopener noreferrer" class="fl-nav-link">
                 <i class="fab fa-whatsapp"></i> Channel
             </a>
             @endif
-
             @if(whatsappCommunityLink())
             <a href="{{ whatsappCommunityLink() }}" target="_blank" rel="noopener noreferrer" class="fl-nav-link">
                 <i class="fas fa-users"></i> Community
             </a>
             @endif
+            @endforelse
 
             <div class="fl-sb-section">Account</div>
 
@@ -380,7 +386,7 @@
                 <a href="{{ route('user.profile.setting') }}">Profile</a>
                 <a href="{{ route('user.change.password') }}">Change Password</a>
                 <a href="{{ route('user.twofactor') }}">2FA Security</a>
-                @if(auth()->user()->kv == 0)
+                @if($u && $u->kv == 0)
                 <a href="{{ route('user.kyc.form') }}">KYC Verification</a>
                 @endif
             </div>

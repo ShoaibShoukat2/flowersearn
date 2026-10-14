@@ -77,12 +77,11 @@ class PlanUpgradeController extends Controller
             'plan_id' => 'required|integer|exists:plans,id',
             'sender_name' => 'required|string|max:100',
             'sender_number' => 'required|string|max:30',
-            'screenshot' => 'required|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'screenshot' => 'required|file|mimes:jpg,jpeg,png,webp',
             'method_code' => $gateways->count() ? 'required|integer' : 'nullable|integer',
         ], [
             'screenshot.required' => 'Please upload the payment screenshot.',
             'screenshot.mimes' => 'Payment screenshot must be a JPG, PNG, or WEBP image.',
-            'screenshot.max' => 'Payment screenshot must be smaller than 8MB.',
         ]);
 
         $target = Plan::where('status', 1)->findOrFail($request->plan_id);

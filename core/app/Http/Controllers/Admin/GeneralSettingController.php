@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactAdmin;
+use App\Models\OfficialChannel;
 use App\Models\Frontend;
 use App\Models\Plan;
 use App\Rules\FileTypeValidate;
@@ -22,9 +23,78 @@ class GeneralSettingController extends Controller
 
     public function contactLinks()
     {
-        $pageTitle = 'Contact & WhatsApp Links';
+        ensureOfficialChannelsTable();
+        $pageTitle = 'Official Channels';
         $general = gs();
-        return view('admin.setting.contact-links', compact('pageTitle', 'general'));
+        $channels = officialChannels(false);
+        return view('admin.setting.contact-links', compact('pageTitle', 'general', 'channels'));
+    }
+
+    public function channelStore(Request $request)
+    {
+        ensureOfficialChannelsTable();
+        $data = $this->channelData($request);
+        if ($data['sort_order'] === null) {
+            $data['sort_order'] = ((int) OfficialChannel::max('sort_order')) + 1;
+        }
+        OfficialChannel::create($data);
+
+        $notify[] = ['success', 'Channel added successfully'];
+        return back()->withNotify($notify);
+    }
+
+    public function channelUpdate(Request $request, $id)
+    {
+        ensureOfficialChannelsTable();
+        $channel = OfficialChannel::findOrFail($id);
+        $data = $this->channelData($request, $channel);
+        $channel->update($data);
+
+        $notify[] = ['success', 'Channel updated successfully'];
+        return back()->withNotify($notify);
+    }
+
+    public function channelDelete($id)
+    {
+        ensureOfficialChannelsTable();
+        OfficialChannel::findOrFail($id)->delete();
+
+        $notify[] = ['success', 'Channel removed successfully'];
+        return back()->withNotify($notify);
+    }
+
+    public function channelStatus($id)
+    {
+        ensureOfficialChannelsTable();
+        $channel = OfficialChannel::findOrFail($id);
+        $channel->status = !$channel->status;
+        $channel->save();
+
+        $notify[] = ['success', $channel->status ? 'Channel enabled successfully' : 'Channel disabled successfully'];
+        return back()->withNotify($notify);
+    }
+
+    protected function channelData(Request $request, ?OfficialChannel $channel = null): array
+    {
+        $request->validate([
+            'title' => 'required|string|max:150',
+            'purpose' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'link' => 'required|url|max:500',
+            'icon' => 'nullable|string|max:80',
+            'status' => 'required|in:0,1',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        return [
+            'title' => trim($request->title),
+            'purpose' => trim((string) $request->purpose) ?: null,
+            'description' => trim((string) $request->description) ?: null,
+            'link' => trim($request->link),
+            'icon' => trim((string) $request->icon) ?: null,
+            'status' => (int) $request->status,
+            'sort_order' => $request->filled('sort_order') ? (int) $request->sort_order : ($channel->sort_order ?? null),
+        ];
     }
 
     public function contactLinksUpdate(Request $request)

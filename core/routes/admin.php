@@ -78,6 +78,11 @@ Route::middleware('admin')->group(function () {
         Route::get('notification-log/{id}', 'notificationLog')->name('notification.log');
     });
 
+    Route::controller('LeaderboardController')->prefix('leaderboard')->name('leaderboard.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('user/{id}', 'show')->name('show');
+    });
+
     // Deposit Gateway
     Route::name('gateway.')->prefix('gateway')->group(function () {
 
@@ -250,6 +255,10 @@ Route::middleware('admin')->group(function () {
         // Contact / WhatsApp Links
         Route::get('contact-links', 'contactLinks')->name('setting.contact.links');
         Route::post('contact-links', 'contactLinksUpdate')->name('setting.contact.links.update');
+        Route::post('contact-links/channels', 'channelStore')->name('setting.channels.store');
+        Route::post('contact-links/channels/update/{id}', 'channelUpdate')->name('setting.channels.update');
+        Route::post('contact-links/channels/delete/{id}', 'channelDelete')->name('setting.channels.delete');
+        Route::post('contact-links/channels/status/{id}', 'channelStatus')->name('setting.channels.status');
         Route::get('contact-admins', 'contactAdmins')->name('setting.contact.admins');
         Route::post('contact-admins', 'contactAdminStore')->name('setting.contact.admins.store');
         Route::post('contact-admins/update/{id}', 'contactAdminUpdate')->name('setting.contact.admins.update');

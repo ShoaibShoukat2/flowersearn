@@ -430,7 +430,7 @@
                                 <span class="mn-shot-placeholder">
                                     <i class="fas fa-image"></i>
                                     Tap to upload
-                                    <small style="font-weight:500;">JPG, PNG or WEBP, up to 8MB</small>
+                                    <small style="font-weight:500;">JPG, PNG or WEBP</small>
                                 </span>
                             </label>
                             <small class="mn-shot-hint"></small>
@@ -456,7 +456,7 @@
                             <span class="mn-shot-placeholder">
                                 <i class="fas fa-image"></i>
                                 Tap to upload payment screenshot
-                                <small style="font-weight:500;">JPG, PNG or WEBP, up to 8MB</small>
+                                <small style="font-weight:500;">JPG, PNG or WEBP</small>
                             </span>
                         </label>
                         <small class="mn-shot-hint" id="paymentShotHint"></small>
@@ -518,12 +518,6 @@
                 if (hint) hint.textContent = 'Please choose a JPG, PNG, or WEBP screenshot.';
                 return;
             }
-            if (file.size > 8 * 1024 * 1024) {
-                input.value = '';
-                if (hint) hint.textContent = 'This screenshot is larger than 8MB. Choose a smaller image.';
-                return;
-            }
-
             var reader = new FileReader();
             reader.onload = function () {
                 preview.src = reader.result;

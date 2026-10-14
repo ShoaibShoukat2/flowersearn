@@ -155,13 +155,7 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN') ?: (function () {
-        $host = parse_url((string) env('APP_URL', ''), PHP_URL_HOST);
-        if (!$host || $host === 'localhost' || filter_var($host, FILTER_VALIDATE_IP)) {
-            return null;
-        }
-        return '.' . ltrim(preg_replace('/^www\./i', '', $host), '.');
-    })(),
+    'domain' => env('SESSION_DOMAIN') ?: null,
 
     /*
     |--------------------------------------------------------------------------

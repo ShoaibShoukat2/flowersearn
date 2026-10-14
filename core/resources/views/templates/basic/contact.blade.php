@@ -204,6 +204,16 @@ body{font-family:'Poppins',sans-serif;}
             <span>Join Our Community</span>
         </div>
         <div class="ct-card-body">
+            @php $contactChannels = officialChannels(); @endphp
+            @forelse($contactChannels as $contactChannel)
+            <a href="{{ $contactChannel->link }}" target="_blank" rel="noopener noreferrer" class="ct-wa-btn">
+                <div class="ct-wa-icon"><i class="{{ str_contains((string) $contactChannel->icon, 'fa-') ? $contactChannel->icon : 'fab fa-whatsapp' }}" style="color:#fff;"></i></div>
+                <div class="ct-wa-text">
+                    <h4>{{ $contactChannel->title }}</h4>
+                    <p>{{ $contactChannel->purpose ?: ($contactChannel->description ?: 'Open this official channel') }}</p>
+                </div>
+            </a>
+            @empty
             @php
                 $communityLink = whatsappCommunityLink();
                 $channelLink = whatsappChannelLink();
@@ -222,6 +232,7 @@ body{font-family:'Poppins',sans-serif;}
                     <p>Official WhatsApp channel for updates and announcements</p>
                 </div>
             </a>
+            @endforelse
         </div>
     </div>
 

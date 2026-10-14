@@ -98,6 +98,8 @@ class FileManager
     */
 	public function upload(){
 
+        $this->path = $this->resolvePath($this->path);
+
         //create the directory if doesn't exists
 		$path = $this->makeDirectory();
 		if (!$path) throw new \Exception('File could not been created.');
@@ -158,8 +160,19 @@ class FileManager
     */
 	public function makeDirectory($location = null){
 		if (!$location) $location = $this->path;
+		$location = $this->resolvePath($location);
 		if (file_exists($location)) return true;
-    	return mkdir($location, 0755, true);
+    	return mkdir($location, 0775, true);
+	}
+
+	protected function resolvePath($location){
+		if (!$location || $location[0] === '/' || preg_match('/^[A-Za-z]:[\\\\\\/]/', $location)) {
+			return $location;
+		}
+		if ($location === 'assets' || strpos($location, 'assets/') === 0) {
+			return public_path($location);
+		}
+		return $location;
 	}
 
     /**

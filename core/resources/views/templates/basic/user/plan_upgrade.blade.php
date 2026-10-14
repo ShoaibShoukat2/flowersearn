@@ -121,7 +121,7 @@
             <label class="up-shot" id="upgradeShotBox">
                 <input type="file" id="upgrade_screenshot" name="screenshot" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required @disabled($pending)>
                 <img class="up-shot-preview" id="upgradeShotPreview" alt="Payment screenshot preview">
-                <span class="up-shot-placeholder">Tap to upload payment screenshot<small style="font-weight:500;">JPG, PNG or WEBP, up to 8MB</small></span>
+                <span class="up-shot-placeholder">Tap to upload payment screenshot<small style="font-weight:500;">JPG, PNG or WEBP</small></span>
             </label>
             <small class="up-shot-hint" id="upgradeShotHint"></small>
 
@@ -189,11 +189,6 @@ if (firstPlan) firstPlan.closest('.up-card').classList.add('active');
         if (name.endsWith('.heic') || name.endsWith('.heif') || file.type === 'image/heic') {
             input.value = '';
             if (hint) hint.textContent = 'iPhone HEIC photos are not supported. Save the screenshot as JPG or PNG, then upload it.';
-            return;
-        }
-        if (file.size > 8 * 1024 * 1024) {
-            input.value = '';
-            if (hint) hint.textContent = 'This screenshot is larger than 8MB. Choose a smaller image.';
             return;
         }
         var reader = new FileReader();

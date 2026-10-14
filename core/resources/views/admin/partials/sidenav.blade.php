@@ -34,6 +34,12 @@
                         <span class="menu-title">@lang('All approved user')</span>
                     </a>
                 </li>
+                <li class="sidebar-menu-item {{menuActive('admin.leaderboard*')}} ">
+                    <a href="{{route('admin.leaderboard.index')}}" class="nav-link">
+                        <i class="menu-icon las la-trophy"></i>
+                        <span class="menu-title">@lang('Leaderboard')</span>
+                    </a>
+                </li>
                 <li class="sidebar-menu-item {{menuActive('admin.referrals.*')}}">
                     <a href="{{route('admin.referrals.index')}}" class="nav-link ">
                         <i class="menu-icon las la-link"></i>
@@ -119,7 +125,7 @@
                 <li class="sidebar-menu-item {{menuActive('admin.setting.contact.links')}}">
                     <a href="{{route('admin.setting.contact.links')}}" class="nav-link">
                         <i class="menu-icon lab la-whatsapp"></i>
-                        <span class="menu-title">@lang('Contact Links')</span>
+                        <span class="menu-title">@lang('Official Channels')</span>
                     </a>
                 </li>
 

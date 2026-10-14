@@ -95,9 +95,24 @@
                                             @php echo $deposit->statusBadge @endphp
                                         </td>
                                         <td>
-                                            <a href="{{ route('admin.deposit.details', $deposit->id) }}" class="btn btn-sm btn-outline--primary ms-1">
-                                                <i class="la la-desktop"></i> @lang('Details')
-                                            </a>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <a href="{{ route('admin.deposit.details', $deposit->id) }}" class="btn btn-sm btn-outline--primary">
+                                                    <i class="la la-desktop"></i> @lang('Details')
+                                                </a>
+                                                @if($deposit->status == 2)
+                                                    <button type="button" class="btn btn-sm btn-outline--success confirmationBtn"
+                                                        data-action="{{ route('admin.deposit.approve', $deposit->id) }}"
+                                                        data-question="@lang('Are you sure to approve this account?')">
+                                                        <i class="las la-check"></i> @lang('Approve')
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline--danger rejectBtn"
+                                                        data-id="{{ $deposit->id }}"
+                                                        data-amount="{{ showAmount($deposit->amount) }} {{ __($general->cur_text) }}"
+                                                        data-username="{{ @$deposit->user->username }}">
+                                                        <i class="las la-times"></i> @lang('Reject')
+                                                    </button>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
@@ -117,6 +132,46 @@
             </div><!-- card end -->
         </div>
     </div>
+{{-- REJECT MODAL — same reasons and the same reject route used on the details page --}}
+    <div id="rejectModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@lang('Reject Deposit Confirmation')</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="las la-times"></i>
+                    </button>
+                </div>
+                <form action="{{ route('admin.deposit.reject') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="id">
+                    <div class="modal-body">
+                        <p>@lang('Are you sure to') <span class="fw-bold">@lang('reject')</span> <span class="fw-bold withdraw-amount text-success"></span> @lang('deposit of') <span class="fw-bold withdraw-user"></span>?</p>
+                        <div class="form-group">
+                            <label class="fw-bold">@lang('Quick Rejection Reasons')</label>
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                @foreach([
+                                    'Kindly correct payment screenshot attach karke account dobara submit karein.',
+                                    'Fake payment detected. Kindly submit a valid payment.',
+                                    'Your account is already approved. Kindly do not submit the account again. Please login to your existing account.',
+                                    'Kindly submit the correct details along with the payment screenshot.',
+                                ] as $reason)
+                                    <button type="button" class="btn btn-outline--danger text-start quick-reject-reason">{{ $reason }}</button>
+                                @endforeach
+                            </div>
+                            <label class="fw-bold mt-2">@lang('Reason for Rejection')</label>
+                            <textarea name="message" maxlength="255" class="form-control" rows="5" required>{{ old('message') }}</textarea>
+                            <small class="text-muted">@lang('Select a quick reason or type a custom reason. The user will see this reason.')</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn--primary w-100 h-45">@lang('Submit')</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <x-confirmation-modal></x-confirmation-modal>
 @endsection
 
 
@@ -148,9 +203,26 @@
     <script>
         (function($) {
             "use strict";
-            if (!$('.datepicker-here').val()) {
+            if ($.fn.datepicker) {
                 $('.datepicker-here').datepicker();
             }
+
+            $('.rejectBtn').on('click', function () {
+                var modal = $('#rejectModal');
+                modal.find('input[name=id]').val($(this).data('id'));
+                modal.find('.withdraw-amount').text($(this).data('amount'));
+                modal.find('.withdraw-user').text($(this).data('username'));
+                modal.find('textarea[name=message]').val('');
+                modal.find('.quick-reject-reason').removeClass('btn--danger').addClass('btn-outline--danger');
+                modal.modal('show');
+            });
+
+            $('.quick-reject-reason').on('click', function () {
+                var modal = $('#rejectModal');
+                modal.find('textarea[name=message]').val($(this).text().trim());
+                modal.find('.quick-reject-reason').removeClass('btn--danger').addClass('btn-outline--danger');
+                $(this).removeClass('btn-outline--danger').addClass('btn--danger');
+            });
         })(jQuery)
     </script>
 @endpush

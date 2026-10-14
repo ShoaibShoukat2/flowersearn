@@ -16,33 +16,83 @@ class ReportController extends Controller
     public function transaction(Request $request)
     {
         $pageTitle = 'Transaction Logs';
-        
+
         $remarks = Transaction::distinct('remark')->orderBy('remark')->get('remark');
+        $remarkLabels = $this->transactionRemarkLabels();
+        $categories = [
+            'credit' => 'Balance Added / Credit',
+            'debit' => 'Balance Deducted / Debit',
+            'referral' => 'Referral Commission',
+            'task' => 'Task Earnings',
+            'withdraw' => 'Withdrawals',
+        ];
 
         $transactions = Transaction::with('user')->orderBy('id', 'desc');
 
         if ($request->search) {
-            $search = $request->search;
+            $search = trim($request->search);
             $transactions = $transactions->where(function ($q) use ($search) {
                 $q->where('trx', 'like', "%{$search}%")
                   ->orWhereHas('user', function ($user) use ($search) {
-                      $user->where('username', 'like', "%{$search}%");
+                      $user->where('username', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$search}%")
+                          ->orWhere('first_name', 'like', "%{$search}%")
+                          ->orWhere('last_name', 'like', "%{$search}%");
                   });
             });
         }
 
-        if ($request->type) {
-            $transactions = $transactions->where('trx_type', $request->type);
+        $category = (string) $request->input('category', '');
+        if ($category === 'credit') {
+            $transactions->where('trx_type', '+');
+        } elseif ($category === 'debit') {
+            $transactions->where('trx_type', '-');
+        } elseif ($category === 'referral') {
+            $transactions->whereIn('remark', ['referral_commission', 'package_upgrade_referral_commission']);
+        } elseif ($category === 'task') {
+            $transactions->whereIn('remark', ['ptc_earn', 'ptc_earn_subtract', 'ptc_earn_sub', 'flowers_bonus']);
+        } elseif ($category === 'withdraw') {
+            $transactions->whereIn('remark', ['withdraw', 'withdraw_reject']);
         }
 
-        if ($request->remark) {
-            $transactions = $transactions->where('remark', $request->remark);
+        if (in_array($request->type, ['+', '-'], true)) {
+            $transactions->where('trx_type', $request->type);
         }
 
-        $transactions = $transactions->paginate(getPaginate());
+        if ($request->filled('remark')) {
+            $transactions->where('remark', $request->remark);
+        }
+
+        $range = parseAdminDateRange($request->date);
+        if ($range) {
+            $transactions->whereBetween('created_at', $range);
+        }
+
+        $transactions = $transactions->paginate(getPaginate())->withQueryString();
         $this->attachReferralSources($transactions);
 
-        return view('admin.reports.transactions', compact('pageTitle', 'transactions', 'remarks'));
+        return view('admin.reports.transactions', compact('pageTitle', 'transactions', 'remarks', 'remarkLabels', 'categories'));
+    }
+
+    protected function transactionRemarkLabels(): array
+    {
+        return [
+            'ptc_earn' => 'Task Earnings',
+            'ptc_earn_subtract' => 'Task Adjustment',
+            'ptc_earn_sub' => 'Task Adjustment',
+            'flowers_bonus' => 'Flowers Bonus',
+            'balance_add' => 'Balance Added',
+            'balance_subtract' => 'Balance Deducted',
+            'balance_received' => 'Balance Received',
+            'balance_transfer' => 'Balance Transfer',
+            'referral_commission' => 'Referral Commission',
+            'package_upgrade_referral_commission' => 'Package Upgrade Referral Commission',
+            'deposit' => 'Deposit',
+            'withdraw' => 'Withdrawal',
+            'withdraw_reject' => 'Withdrawal Rejected',
+            'subscribe_plan' => 'Plan Purchase',
+            'registration_bonus' => 'Registration Bonus',
+        ];
     }
 
     protected function attachReferralSources($transactions)

@@ -1,34 +1,53 @@
 @extends('admin.layouts.app')
 
+@push('style')
+<style>
+    .trx-filter-page .show-filter { display: block !important; }
+    .trx-filter-page .responsive-filter-card { display: none; }
+    .trx-filter-page .responsive-filter-card.filter-open { display: block !important; }
+</style>
+@endpush
 @section('panel')
-<div class="row">
+<div class="row trx-filter-page">
 
     <div class="col-lg-12">
+        @php
+            $trxFilterOpen = request()->filled('search') || request()->filled('category') || request()->filled('type') || request()->filled('remark') || request()->filled('date');
+        @endphp
         <div class="show-filter mb-3 text-end">
             <button type="button" class="btn btn-outline--primary showFilterBtn btn-sm"><i class="las la-filter"></i> @lang('Filter')</button>
         </div>
-        <div class="card responsive-filter-card mb-4">
+        <div class="card responsive-filter-card mb-4 {{ $trxFilterOpen ? 'filter-open' : '' }}" id="trxFilterCard">
             <div class="card-body">
-                <form action="">
+                <form action="{{ route('admin.report.transaction') }}" method="GET">
                     <div class="d-flex flex-wrap gap-4">
                         <div class="flex-grow-1">
-                            <label>@lang('TRX/Username')</label>
+                            <label>@lang('TRX / Username / Email')</label>
                             <input type="text" name="search" value="{{ request()->search }}" class="form-control">
                         </div>
                         <div class="flex-grow-1">
-                            <label>@lang('Type')</label>
-                            <select name="type" class="form-control">
+                            <label>@lang('Category')</label>
+                            <select name="category" class="form-control">
                                 <option value="">@lang('All')</option>
-                                <option value="+" @selected(request()->type == '+')>@lang('Plus')</option>
-                                <option value="-" @selected(request()->type == '-')>@lang('Minus')</option>
+                                @foreach($categories as $value => $label)
+                                    <option value="{{ $value }}" @selected(request()->category == $value)>{{ __($label) }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="flex-grow-1">
-                            <label>@lang('Remark')</label>
+                            <label>@lang('Credit / Debit')</label>
+                            <select name="type" class="form-control">
+                                <option value="">@lang('All')</option>
+                                <option value="+" @selected(request()->type == '+')>@lang('Balance Added / Credit')</option>
+                                <option value="-" @selected(request()->type == '-')>@lang('Balance Deducted / Debit')</option>
+                            </select>
+                        </div>
+                        <div class="flex-grow-1">
+                            <label>@lang('Transaction Type')</label>
                             <select class="form-control" name="remark">
                                 <option value="">@lang('Any')</option>
                                 @foreach($remarks as $remark)
-                                <option value="{{ $remark->remark }}" @selected(request()->remark == $remark->remark)>{{ __(keyToTitle($remark->remark)) }}</option>
+                                    <option value="{{ $remark->remark }}" @selected(request()->remark == $remark->remark)>{{ __($remarkLabels[$remark->remark] ?? keyToTitle($remark->remark)) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -138,7 +157,7 @@
   <script>
     (function($){
         "use strict";
-        if(!$('.datepicker-here').val()){
+        if ($.fn.datepicker) {
             $('.datepicker-here').datepicker();
         }
     })(jQuery)
