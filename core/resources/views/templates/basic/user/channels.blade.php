@@ -24,8 +24,12 @@
 }
 .oc-top{display:flex;align-items:flex-start;gap:12px;}
 .oc-icon{
-    width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     background:#25d366;color:#fff;font-size:1.25rem;flex-shrink:0;
+}
+.oc-photo{
+    width:56px;height:56px;border-radius:50%;object-fit:cover;flex-shrink:0;
+    border:2px solid #d9f5e5;background:#fff;
 }
 .oc-card h4{margin:0 0 4px;font-size:1rem;font-weight:800;color:#16382f;}
 .oc-purpose{margin:0;font-size:.8rem;font-weight:700;color:#128C7E;line-height:1.45;}
@@ -52,11 +56,15 @@
         <div class="oc-list">
             @foreach($channels as $channel)
                 @php
+                    $channelPhoto = officialChannelImageUrl($channel);
                     $icon = trim((string) ($channel->icon ?: 'fab fa-whatsapp'));
                     $isIcon = str_contains($icon, 'fa-');
                 @endphp
                 <div class="oc-card">
                     <div class="oc-top">
+                        @if($channelPhoto)
+                            <img src="{{ $channelPhoto }}" alt="{{ $channel->title }}" class="oc-photo">
+                        @else
                         <div class="oc-icon">
                             @if($isIcon)
                                 <i class="{{ $icon }}"></i>
@@ -64,6 +72,7 @@
                                 <span>{{ $icon }}</span>
                             @endif
                         </div>
+                        @endif
                         <div>
                             <h4>{{ $channel->title }}</h4>
                             @if($channel->purpose)

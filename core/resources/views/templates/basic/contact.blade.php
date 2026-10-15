@@ -142,7 +142,8 @@ body{font-family:'Poppins',sans-serif;}
 .ct-wa-btn:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 8px 24px rgba(34,197,94,0.32);}
 .ct-wa-btn.channel{background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 4px 16px rgba(59,130,246,0.22);}
 .ct-wa-btn.channel:hover{box-shadow:0 8px 24px rgba(59,130,246,0.32);}
-.ct-wa-icon{width:46px;height:46px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.ct-wa-icon{width:46px;height:46px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;overflow:hidden;}
+.ct-wa-photo{width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#fff;}
 .ct-wa-text h4{font-size:0.9rem;font-weight:700;color:#fff;margin-bottom:2px;}
 .ct-wa-text p{font-size:0.74rem;color:rgba(255,255,255,0.82);}
 
@@ -207,7 +208,11 @@ body{font-family:'Poppins',sans-serif;}
             @php $contactChannels = officialChannels(); @endphp
             @forelse($contactChannels as $contactChannel)
             <a href="{{ $contactChannel->link }}" target="_blank" rel="noopener noreferrer" class="ct-wa-btn">
-                <div class="ct-wa-icon"><i class="{{ str_contains((string) $contactChannel->icon, 'fa-') ? $contactChannel->icon : 'fab fa-whatsapp' }}" style="color:#fff;"></i></div>
+                @if($contactPhoto = officialChannelImageUrl($contactChannel))
+                    <img src="{{ $contactPhoto }}" alt="{{ $contactChannel->title }}" class="ct-wa-photo">
+                @else
+                    <div class="ct-wa-icon"><i class="{{ str_contains((string) $contactChannel->icon, 'fa-') ? $contactChannel->icon : 'fab fa-whatsapp' }}" style="color:#fff;"></i></div>
+                @endif
                 <div class="ct-wa-text">
                     <h4>{{ $contactChannel->title }}</h4>
                     <p>{{ $contactChannel->purpose ?: ($contactChannel->description ?: 'Open this official channel') }}</p>

@@ -29,7 +29,7 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
                             <span>@lang('Current Level')</span>
-                            <span class="fw-bold">@lang('Level') {{ (int) $user->level }}</span>
+                            <span class="fw-bold">@lang('Level') {{ (int) $displayLevel }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
                             <span>@lang('Total Team')</span>

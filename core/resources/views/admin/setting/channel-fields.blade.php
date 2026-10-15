@@ -36,16 +36,15 @@
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            <label>@lang('Optional Icon')</label>
-            <input type="text" name="icon" class="form-control" maxlength="80" list="channel-icon-presets" value="{{ $field('icon', 'fab fa-whatsapp') }}" placeholder="fab fa-whatsapp">
-            <datalist id="channel-icon-presets">
-                <option value="fab fa-whatsapp"></option>
-                <option value="fas fa-broadcast-tower"></option>
-                <option value="fas fa-bullhorn"></option>
-                <option value="fas fa-gift"></option>
-                <option value="fas fa-graduation-cap"></option>
-                <option value="fas fa-users"></option>
-            </datalist>
+            <label>@lang('Channel Profile Picture')</label>
+            @php $channelPhoto = isset($channel) ? officialChannelImageUrl($channel) : null; @endphp
+            @if($channelPhoto)
+                <div class="mb-2">
+                    <img src="{{ $channelPhoto }}" alt="{{ $channel->title }}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #e5e5e5;">
+                </div>
+            @endif
+            <input type="file" name="image" class="form-control" accept="image/png,image/jpeg,image/jpg,image/webp">
+            <small class="text-muted">@lang('Upload this channel’s own DP or logo from your phone or computer. JPG, PNG, or WEBP.')</small>
         </div>
     </div>
     <div class="col-md-4">

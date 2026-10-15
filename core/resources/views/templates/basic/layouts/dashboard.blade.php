@@ -123,6 +123,7 @@
         }
 
         .fl-nav-link i{width:16px;text-align:center;font-size:14px;color:#e91e8c;flex-shrink:0;}
+        .fl-nav-photo{width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0;}
         .fl-nav-link:hover{background:#fdf6f9;color:#e91e8c;}
         .fl-nav-link.active{background:linear-gradient(135deg,#e91e8c,#f06292);color:#fff;box-shadow:0 3px 12px rgba(233,30,140,0.22);}
         .fl-nav-link.active i{color:#fff;}
@@ -361,7 +362,12 @@
             @php $sidebarChannels = officialChannels(); @endphp
             @forelse($sidebarChannels as $sidebarChannel)
             <a href="{{ $sidebarChannel->link }}" target="_blank" rel="noopener noreferrer" class="fl-nav-link">
-                <i class="{{ str_contains((string) $sidebarChannel->icon, 'fa-') ? $sidebarChannel->icon : 'fas fa-bullhorn' }}"></i> {{ $sidebarChannel->title }}
+                @if($sidebarPhoto = officialChannelImageUrl($sidebarChannel))
+                    <img src="{{ $sidebarPhoto }}" alt="" class="fl-nav-photo">
+                @else
+                    <i class="{{ str_contains((string) $sidebarChannel->icon, 'fa-') ? $sidebarChannel->icon : 'fas fa-bullhorn' }}"></i>
+                @endif
+                {{ $sidebarChannel->title }}
             </a>
             @empty
             @if(whatsappChannelLink())

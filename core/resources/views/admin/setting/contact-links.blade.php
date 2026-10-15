@@ -8,7 +8,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted">@lang('Add as many official channels as you need. Enabled channels appear on the user dashboard.')</p>
-                    <form action="{{ route('admin.setting.channels.store') }}" method="POST">
+                    <form action="{{ route('admin.setting.channels.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @include('admin.setting.channel-fields', ['remember' => true])
                         <button type="submit" class="btn btn--primary">@lang('Add Channel')</button>
@@ -27,7 +27,7 @@
                         <span class="badge badge--{{ $channel->status ? 'success' : 'warning' }}">{{ $channel->status ? __('Enabled') : __('Disabled') }}</span>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('admin.setting.channels.update', $channel->id) }}" method="POST">
+                        <form action="{{ route('admin.setting.channels.update', $channel->id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @include('admin.setting.channel-fields', ['channel' => $channel])
                             <button type="submit" class="btn btn--primary">@lang('Update Channel')</button>

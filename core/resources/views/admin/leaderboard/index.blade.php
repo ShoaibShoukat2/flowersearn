@@ -1,5 +1,24 @@
 @extends('admin.layouts.app')
 @section('panel')
+    <div class="row g-3 mb-4">
+        @foreach($levelSummary as $summaryLevel => $summaryCount)
+            @php
+                $summaryQuery = request()->except(['page', 'level']);
+                $isActiveLevel = request()->filled('level') && (string) request('level') === (string) $summaryLevel;
+                if (!$isActiveLevel) {
+                    $summaryQuery['level'] = $summaryLevel;
+                }
+            @endphp
+            <div class="col-6 col-md-4 col-xl-2">
+                <a href="{{ route('admin.leaderboard.index', $summaryQuery) }}" class="card b-radius--10 h-100 {{ $isActiveLevel ? 'border border--primary' : '' }}" style="text-decoration:none;">
+                    <div class="card-body text-center py-3">
+                        <div class="fw-bold text--primary">@lang('Level') {{ $summaryLevel }}</div>
+                        <div class="fs-5 fw-bold">{{ $summaryCount }} @lang('Users')</div>
+                    </div>
+                </a>
+            </div>
+        @endforeach
+    </div>
     <div class="row">
         <div class="col-lg-12">
             <div class="card responsive-filter-card mb-4 filter-open">
@@ -7,8 +26,12 @@
                     <form action="{{ route('admin.leaderboard.index') }}" method="GET">
                         <div class="d-flex flex-wrap gap-3">
                             <div class="flex-grow-1">
-                                <label>@lang('Username / Email')</label>
-                                <input type="text" name="search" value="{{ $search }}" class="form-control" placeholder="@lang('Search name or email')">
+                                <label>@lang('Username')</label>
+                                <input type="text" name="username" value="{{ $username }}" class="form-control" placeholder="@lang('Search display name')">
+                            </div>
+                            <div class="flex-grow-1">
+                                <label>@lang('Email')</label>
+                                <input type="text" name="email" value="{{ $email }}" class="form-control" placeholder="@lang('Search email')">
                             </div>
                             <div class="flex-grow-1">
                                 <label>@lang('Plan / Package')</label>
@@ -23,16 +46,18 @@
                                 <label>@lang('Level')</label>
                                 <select name="level" class="form-control">
                                     <option value="">@lang('All Levels')</option>
-                                    @for($level = 8; $level >= 0; $level--)
+                                    @foreach($levelOptions as $level)
                                         <option value="{{ $level }}" @selected(request()->filled('level') && (string) request('level') === (string) $level)>@lang('Level') {{ $level }}</option>
-                                    @endfor
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="flex-grow-1">
-                                <label>@lang('Sort')</label>
+                                <label>@lang('Sort By')</label>
                                 <select name="sort" class="form-control">
-                                    <option value="level" @selected($sort === 'level')>@lang('Level: highest first')</option>
-                                    <option value="earnings" @selected($sort === 'earnings')>@lang('Earnings: highest first')</option>
+                                    <option value="" @selected($sort === '')>@lang('Default ranking')</option>
+                                    <option value="level" @selected($sort === 'level')>@lang('Level – Highest to Lowest')</option>
+                                    <option value="earnings" @selected($sort === 'earnings')>@lang('Total Earnings – Highest to Lowest')</option>
+                                    <option value="team" @selected($sort === 'team')>@lang('Total Team – Highest to Lowest')</option>
                                 </select>
                             </div>
                             <div class="flex-grow-1">
@@ -57,7 +82,7 @@
                         </div>
                     </form>
                     <small class="text-muted d-block mt-3">
-                        @lang('Default ranking keeps a higher level above a lower level. Members on the same level are ordered by approved team, then total earnings.')
+                        @lang('Default ranking keeps a higher level above a lower level, even when the lower level has more earnings. Members on the same level are ordered by approved team, then total earnings. Click a level card to show only that level. Filters work together.')
                     </small>
                 </div>
             </div>

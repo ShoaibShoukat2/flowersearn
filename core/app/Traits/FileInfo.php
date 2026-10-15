@@ -61,6 +61,10 @@ trait FileInfo
             'path'      =>'assets/admin/images/profile',
             'size'      =>'400x400',
         ];
+        $data['channel'] = [
+            'path'      =>'assets/images/channels',
+            'size'      =>'400x400',
+        ];
         return $data;
 	}
 

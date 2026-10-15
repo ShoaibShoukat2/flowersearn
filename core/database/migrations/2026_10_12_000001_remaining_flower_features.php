@@ -36,6 +36,7 @@ return new class extends Migration
                 $table->text('instructions')->nullable();
                 $table->string('contact_number')->nullable();
                 $table->string('whatsapp_number')->nullable();
+                $table->string('bot_link', 500)->nullable();
                 $table->string('contact_type', 20)->default('whatsapp');
                 $table->timestamps();
             });

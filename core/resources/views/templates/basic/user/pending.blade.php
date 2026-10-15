@@ -433,10 +433,11 @@ body{background:#fdf0f7 !important;}
 .pnd-channel.channel{background:#f3f8ff;border-color:#dbeafe;}
 .pnd-channel.disabled{opacity:.6;pointer-events:none;}
 .pnd-channel-icon{
-    width:42px;height:42px;border-radius:12px;flex-shrink:0;
+    width:42px;height:42px;border-radius:50%;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
-    background:#25d366;color:#fff;font-size:1.15rem;
+    background:#25d366;color:#fff;font-size:1.15rem;overflow:hidden;
 }
+.pnd-channel-photo{width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#fff;}
 .pnd-channel.channel .pnd-channel-icon{background:#1976d2;}
 .pnd-channel h4{margin:0 0 2px;font-size:0.9rem;font-weight:700;color:#222;}
 .pnd-channel p{margin:0;font-size:0.75rem;color:#777;}
@@ -615,7 +616,11 @@ body{background:#fdf0f7 !important;}
             <p class="pnd-channel-copy">Join the official channels for important updates and training. The review timer starts only after you confirm.</p>
             @forelse($pendingChannels as $pendingChannel)
             <a href="{{ $pendingChannel->link }}" target="_blank" rel="noopener noreferrer" class="pnd-channel">
-                <div class="pnd-channel-icon"><i class="{{ str_contains((string) $pendingChannel->icon, 'fa-') ? $pendingChannel->icon : 'fab fa-whatsapp' }}"></i></div>
+                @if($pendingPhoto = officialChannelImageUrl($pendingChannel))
+                    <img src="{{ $pendingPhoto }}" alt="{{ $pendingChannel->title }}" class="pnd-channel-photo">
+                @else
+                    <div class="pnd-channel-icon"><i class="{{ str_contains((string) $pendingChannel->icon, 'fa-') ? $pendingChannel->icon : 'fab fa-whatsapp' }}"></i></div>
+                @endif
                 <div>
                     <h4>{{ $pendingChannel->title }}</h4>
                     <p>{{ $pendingChannel->purpose ?: 'Tap to join this channel' }}</p>

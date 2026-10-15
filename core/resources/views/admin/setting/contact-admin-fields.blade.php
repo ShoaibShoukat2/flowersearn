@@ -19,24 +19,37 @@
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            <label>@lang('Contact Number')</label>
-            <input type="text" name="contact_number" class="form-control" value="{{ !empty($remember) ? old('contact_number') : (isset($admin) ? $admin->contact_number : '') }}">
+            <label>@lang('Contact Type')</label>
+            @php
+                $selectedType = !empty($remember) ? old('contact_type', 'whatsapp') : (isset($admin) ? $admin->contact_type : 'whatsapp');
+                if (!in_array($selectedType, ['whatsapp', 'botim'], true)) {
+                    $selectedType = 'whatsapp';
+                }
+            @endphp
+            <select name="contact_type" class="form-control" required>
+                <option value="whatsapp" @selected($selectedType === 'whatsapp')>@lang('WhatsApp')</option>
+                <option value="botim" @selected($selectedType === 'botim')>@lang('Botim')</option>
+            </select>
         </div>
     </div>
     <div class="col-md-4">
         <div class="form-group">
             <label>@lang('WhatsApp Number')</label>
-            <input type="text" name="whatsapp_number" class="form-control" value="{{ !empty($remember) ? old('whatsapp_number') : (isset($admin) ? $admin->whatsapp_number : '') }}">
+            <input type="text" name="whatsapp_number" class="form-control" value="{{ !empty($remember) ? old('whatsapp_number') : (isset($admin) ? $admin->whatsapp_number : '') }}" placeholder="03XXXXXXXXX">
+            <small class="text-muted">@lang('Required when Contact Type is WhatsApp.')</small>
         </div>
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            <label>@lang('Contact Type')</label>
-            <select name="contact_type" class="form-control" required>
-                @foreach(['whatsapp' => 'WhatsApp', 'call' => 'Call', 'both' => 'WhatsApp and Call'] as $value => $label)
-                    <option value="{{ $value }}" @selected((!empty($remember) ? old('contact_type', 'whatsapp') : (isset($admin) ? $admin->contact_type : 'whatsapp')) === $value)>{{ __($label) }}</option>
-                @endforeach
-            </select>
+            <label>@lang('Contact Number')</label>
+            <input type="text" name="contact_number" class="form-control" value="{{ !empty($remember) ? old('contact_number') : (isset($admin) ? $admin->contact_number : '') }}">
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="form-group">
+            <label>@lang('Botim Link or Number')</label>
+            <input type="text" name="bot_link" class="form-control" maxlength="500" value="{{ !empty($remember) ? old('bot_link') : (isset($admin) ? $admin->bot_link : '') }}" placeholder="https://botim.me/... or Botim number">
+            <small class="text-muted">@lang('Required when Contact Type is Botim. Paste the bot link or the Botim number.')</small>
         </div>
     </div>
 </div>

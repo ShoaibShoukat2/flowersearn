@@ -97,7 +97,7 @@
 
 /* ══ FLOATING STAT CARDS ══ */
 .wl-stats-row{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
     padding:0 1.2rem;
     margin-top:-1.4rem; /* overlap hero */
     position:relative;z-index:10;
@@ -181,6 +181,29 @@
     background-clip:text;line-height:1;margin-bottom:3px;
 }
 .wl-earn-lbl{font-size:0.72rem;font-weight:600;color:#bbb;}
+.wl-approved-total{
+    margin:12px 1.2rem 0;
+    background:linear-gradient(145deg,#fff7fb 0%,#ffe4f3 55%,#ffd0ea 100%);
+    border:1.5px solid #f3b4d6;
+    border-radius:22px;
+    padding:1.25rem 1.1rem 1.15rem;
+    text-align:center;
+    box-shadow:0 10px 28px rgba(233,30,140,0.14);
+    position:relative;overflow:hidden;
+}
+.wl-approved-total::before{
+    content:'';position:absolute;width:120px;height:120px;border-radius:50%;
+    background:rgba(233,30,140,0.08);top:-46px;right:-30px;
+}
+.wl-approved-kicker{
+    position:relative;z-index:1;
+    font-size:0.72rem;font-weight:800;letter-spacing:0.08em;
+    text-transform:uppercase;color:#ad1457;margin-bottom:6px;
+}
+.wl-approved-val{
+    position:relative;z-index:1;
+    font-size:1.85rem;font-weight:800;color:#e91e8c;line-height:1;
+}
 .wl-earn-card--flowers{cursor:pointer;user-select:none;}
 .wl-earn-card--flowers:active{transform:scale(0.98);}
 .wl-earn-withdraw-hint{
@@ -309,25 +332,18 @@
     {{-- ══ FLOATING STAT CARDS ══ --}}
     <div class="wl-stats-row">
         <div class="wl-stat">
-            <div class="wl-stat-icon" style="background:#e8f5e9;">
-                <i class="fas fa-check-circle" style="color:#22c55e;"></i>
-            </div>
-            <div class="wl-stat-val">Rs {{ number_format($totalWithdraw,0) }}</div>
-            <div class="wl-stat-lbl">Withdrawn</div>
-        </div>
-        <div class="wl-stat">
             <div class="wl-stat-icon" style="background:#fff8e1;">
                 <i class="fas fa-clock" style="color:#f59e0b;"></i>
             </div>
             <div class="wl-stat-val">Rs {{ number_format($pendingWithdraw,0) }}</div>
-            <div class="wl-stat-lbl">Pending</div>
+            <div class="wl-stat-lbl">Withdrawal Pending</div>
         </div>
         <div class="wl-stat">
             <div class="wl-stat-icon" style="background:#fce4ec;">
                 <i class="fas fa-times-circle" style="color:#e91e8c;"></i>
             </div>
             <div class="wl-stat-val">Rs {{ number_format($rejectedWithdraw,0) }}</div>
-            <div class="wl-stat-lbl">Rejected</div>
+            <div class="wl-stat-lbl">Withdrawal Rejected</div>
         </div>
     </div>
 
@@ -353,6 +369,10 @@
             <div class="wl-earn-lbl">Flowers Earn 🌸</div>
             <div class="wl-earn-withdraw-hint">Withdraw at Level 8</div>
         </div>
+    </div>
+    <div class="wl-approved-total">
+        <div class="wl-approved-kicker">Total Approved Withdrawal</div>
+        <div class="wl-approved-val">Rs {{ number_format($totalWithdraw, 0) }}</div>
     </div>
 
     {{-- ══ QUICK ACTIONS ══ --}}

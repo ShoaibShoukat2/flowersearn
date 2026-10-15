@@ -926,11 +926,16 @@ if (!function_exists('ensureOfficialChannelsTable')) {
                     $table->text('description')->nullable();
                     $table->string('link', 500);
                     $table->string('icon')->nullable();
+                    $table->string('image')->nullable();
                     $table->boolean('status')->default(true);
                     $table->unsignedInteger('sort_order')->default(0);
                     $table->timestamps();
                 });
                 seedOfficialChannelsFromLegacyLinks();
+            } elseif (!Schema::hasColumn('official_channels', 'image')) {
+                Schema::table('official_channels', function ($table) {
+                    $table->string('image')->nullable();
+                });
             }
 
             $done = true;
@@ -1031,6 +1036,18 @@ if (!function_exists('officialChannels')) {
     }
 }
 
+if (!function_exists('officialChannelImageUrl')) {
+    function officialChannelImageUrl($channel): ?string
+    {
+        $file = trim((string) ($channel->image ?? ''));
+        if ($file === '') {
+            return null;
+        }
+
+        return asset(getFilePath('channel') . '/' . $file);
+    }
+}
+
 if (!function_exists('whatsappChatLink')) {
     function whatsappChatLink(?string $number): ?string
     {
@@ -1043,6 +1060,27 @@ if (!function_exists('whatsappChatLink')) {
         }
 
         return 'https://wa.me/' . $digits;
+    }
+}
+
+if (!function_exists('botimOpenLink')) {
+    function botimOpenLink(?string $value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+
+        $digits = preg_replace('/\D+/', '', $value);
+        if ($digits === '') {
+            return null;
+        }
+
+        return 'https://botim.me/' . $digits;
     }
 }
 
@@ -1606,8 +1644,13 @@ if (!function_exists('ensureContactAdminsTable')) {
                     $table->text('instructions')->nullable();
                     $table->string('contact_number')->nullable();
                     $table->string('whatsapp_number')->nullable();
+                    $table->string('bot_link', 500)->nullable();
                     $table->string('contact_type', 20)->default('whatsapp');
                     $table->timestamps();
+                });
+            } elseif (!Schema::hasColumn('contact_admins', 'bot_link')) {
+                Schema::table('contact_admins', function ($table) {
+                    $table->string('bot_link', 500)->nullable();
                 });
             }
             $done = true;

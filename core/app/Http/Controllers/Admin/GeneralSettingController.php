@@ -57,7 +57,11 @@ class GeneralSettingController extends Controller
     public function channelDelete($id)
     {
         ensureOfficialChannelsTable();
-        OfficialChannel::findOrFail($id)->delete();
+        $channel = OfficialChannel::findOrFail($id);
+        if ($channel->image) {
+            fileManager()->removeFile(public_path(getFilePath('channel') . '/' . $channel->image));
+        }
+        $channel->delete();
 
         $notify[] = ['success', 'Channel removed successfully'];
         return back()->withNotify($notify);
@@ -81,19 +85,25 @@ class GeneralSettingController extends Controller
             'purpose' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'link' => 'required|url|max:500',
-            'icon' => 'nullable|string|max:80',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'status' => 'required|in:0,1',
             'sort_order' => 'nullable|integer|min:0',
         ]);
+
+        $image = $channel?->image;
+        if ($request->hasFile('image')) {
+            $image = fileUploader($request->file('image'), getFilePath('channel'), null, $image);
+        }
 
         return [
             'title' => trim($request->title),
             'purpose' => trim((string) $request->purpose) ?: null,
             'description' => trim((string) $request->description) ?: null,
             'link' => trim($request->link),
-            'icon' => trim((string) $request->icon) ?: null,
+            'icon' => $channel?->icon,
+            'image' => $image,
             'status' => (int) $request->status,
-            'sort_order' => $request->filled('sort_order') ? (int) $request->sort_order : ($channel->sort_order ?? null),
+            'sort_order' => $request->filled('sort_order') ? (int) $request->sort_order : $channel?->sort_order,
         ];
     }
 
@@ -161,15 +171,23 @@ class GeneralSettingController extends Controller
             'instructions' => 'nullable|string|max:500',
             'contact_number' => 'nullable|string|max:40',
             'whatsapp_number' => 'nullable|string|max:40',
-            'contact_type' => 'required|in:whatsapp,call,both',
+            'bot_link' => 'nullable|string|max:500',
+            'contact_type' => 'required|in:whatsapp,botim',
         ]);
 
         $contactNumber = trim((string) $request->contact_number);
         $whatsappNumber = trim((string) $request->whatsapp_number);
+        $botLink = trim((string) $request->bot_link);
 
-        if ($contactNumber === '' && $whatsappNumber === '') {
+        if ($request->contact_type === 'botim' && $botLink === '') {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'contact_number' => 'Enter a contact number or a WhatsApp number.',
+                'bot_link' => 'Enter the Botim link or Botim number.',
+            ]);
+        }
+
+        if ($request->contact_type === 'whatsapp' && $contactNumber === '' && $whatsappNumber === '') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'whatsapp_number' => 'Enter a WhatsApp number.',
             ]);
         }
 
@@ -179,6 +197,7 @@ class GeneralSettingController extends Controller
             'instructions' => trim((string) $request->instructions) ?: null,
             'contact_number' => $contactNumber ?: null,
             'whatsapp_number' => $whatsappNumber ?: null,
+            'bot_link' => $botLink ?: null,
             'contact_type' => $request->contact_type,
         ];
     }

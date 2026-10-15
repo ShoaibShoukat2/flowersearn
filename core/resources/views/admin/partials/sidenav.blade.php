@@ -74,12 +74,6 @@
                         <span class="menu-title">@lang('Today Approved Users')</span>
                     </a>
                 </li>
-                <li class="sidebar-menu-item {{menuActive('admin.deposit.approved')}} ">
-                    <a href="{{route('admin.deposit.approved')}}" class="nav-link">
-                        <i class="menu-icon las la-dot-circle"></i>
-                        <span class="menu-title">@lang('All Approved Users')</span>
-                    </a>
-                </li>
                 <li class="sidebar-menu-item {{menuActive('admin.withdraw.approved')}} ">
                     <a href="{{route('admin.withdraw.approved')}}" class="nav-link">
                         <i class="menu-icon las la-dot-circle"></i>

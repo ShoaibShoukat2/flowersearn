@@ -29,6 +29,7 @@
     margin-top:6px;
 }
 .uc-line.call{color:#1976d2;}
+.uc-line.botim{color:#2f6bff;}
 .uc-empty{
     margin:0 1rem;text-align:center;padding:1.5rem 1rem;color:#888;font-size:0.88rem;line-height:1.6;
     background:#fff;border-radius:16px;border:1.5px dashed #f0d0e4;
@@ -47,6 +48,9 @@
             $showWhatsapp = in_array($admin->contact_type, ['whatsapp', 'both'], true) && ($admin->whatsapp_number || $admin->contact_number);
             $whatsappNumber = $admin->whatsapp_number ?: $admin->contact_number;
             $showCall = in_array($admin->contact_type, ['call', 'both'], true) && $admin->contact_number;
+            $botLink = trim((string) ($admin->bot_link ?? ''));
+            $showBotim = $admin->contact_type === 'botim' && $botLink !== '';
+            $botimUrl = $showBotim ? botimOpenLink($botLink) : null;
         @endphp
         <div class="uc-admin">
             <h3>{{ $admin->name }}</h3>
@@ -62,6 +66,11 @@
             @if($showCall)
                 <a class="uc-line call" href="tel:{{ preg_replace('/\s+/', '', $admin->contact_number) }}">
                     <i class="fas fa-phone"></i> Contact: {{ $admin->contact_number }}
+                </a>
+            @endif
+            @if($showBotim)
+                <a class="uc-line botim" href="{{ $botimUrl ?: '#' }}" @if($botimUrl) target="_blank" rel="noopener noreferrer" @endif>
+                    <i class="fas fa-robot"></i> Botim: {{ $botLink }}
                 </a>
             @endif
         </div>
