@@ -16,10 +16,12 @@ use App\Models\Transaction;
 use App\Notify\Notify;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Models\User;
+use App\Models\UserIpLock;
 use App\Models\Plan;
 use App\Models\Deposit;
 use App\Models\OfficialChannel;
@@ -1656,6 +1658,156 @@ if (!function_exists('ensureContactAdminsTable')) {
             $done = true;
         } catch (\Throwable $e) {
             Log::error('Unable to prepare contact admins table: ' . $e->getMessage());
+        }
+    }
+}
+
+if (!function_exists('ipAccountLimitMessage')) {
+    function ipAccountLimitMessage(): string
+    {
+        return 'This IP address already has an account. Only one account can register or sign in from the same IP.';
+    }
+}
+
+if (!function_exists('accountLockIp')) {
+    function accountLockIp(): ?string
+    {
+        $ip = trim((string) getRealIP());
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+            return null;
+        }
+        if ($ip === '127.0.0.1' || $ip === '::1') {
+            return null;
+        }
+
+        return $ip;
+    }
+}
+
+if (!function_exists('ensureUserIpLocks')) {
+    function ensureUserIpLocks(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+
+        try {
+            $created = false;
+            if (!Schema::hasTable('user_ip_locks')) {
+                Schema::create('user_ip_locks', function ($table) {
+                    $table->id();
+                    $table->string('ip', 45)->unique();
+                    $table->unsignedBigInteger('user_id')->index();
+                    $table->timestamps();
+                });
+                $created = true;
+            }
+
+            if ($created) {
+                backfillUserIpLocks();
+            }
+            $done = true;
+        } catch (\Throwable $e) {
+            Log::error('Unable to prepare user IP locks: ' . $e->getMessage());
+        }
+    }
+}
+
+if (!function_exists('backfillUserIpLocks')) {
+    function backfillUserIpLocks(): void
+    {
+        if (!Schema::hasTable('user_ip_locks') || !Schema::hasTable('user_logins')) {
+            return;
+        }
+
+        $ids = DB::table('user_logins')
+            ->selectRaw('MIN(id) as id')
+            ->whereNotNull('user_ip')
+            ->where('user_ip', '!=', '')
+            ->groupBy('user_ip')
+            ->pluck('id');
+
+        foreach ($ids->chunk(200) as $chunk) {
+            $logins = DB::table('user_logins')->whereIn('id', $chunk->all())->get();
+            $now = now();
+            $inserts = [];
+
+            foreach ($logins as $login) {
+                $ip = trim((string) $login->user_ip);
+                if (!filter_var($ip, FILTER_VALIDATE_IP) || $ip === '127.0.0.1' || $ip === '::1') {
+                    continue;
+                }
+                if (empty($login->user_id)) {
+                    continue;
+                }
+
+                $inserts[] = [
+                    'ip' => $ip,
+                    'user_id' => $login->user_id,
+                    'created_at' => $login->created_at ?? $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            if ($inserts) {
+                DB::table('user_ip_locks')->insertOrIgnore($inserts);
+            }
+        }
+    }
+}
+
+if (!function_exists('ipAccountOwnerId')) {
+    function ipAccountOwnerId(?string $ip = null): ?int
+    {
+        $ip = $ip ?? accountLockIp();
+        if (!$ip) {
+            return null;
+        }
+
+        ensureUserIpLocks();
+        if (!Schema::hasTable('user_ip_locks')) {
+            return null;
+        }
+
+        $owner = UserIpLock::where('ip', $ip)->value('user_id');
+
+        return $owner ? (int) $owner : null;
+    }
+}
+
+if (!function_exists('claimIpForUser')) {
+    function claimIpForUser(int $userId, ?string $ip = null): bool
+    {
+        $ip = $ip ?? accountLockIp();
+        if (!$ip) {
+            return true;
+        }
+
+        ensureUserIpLocks();
+        if (!Schema::hasTable('user_ip_locks')) {
+            return true;
+        }
+
+        $owner = ipAccountOwnerId($ip);
+        if ($owner === $userId) {
+            return true;
+        }
+        if ($owner) {
+            return false;
+        }
+
+        try {
+            UserIpLock::create([
+                'ip' => $ip,
+                'user_id' => $userId,
+            ]);
+
+            return true;
+        } catch (\Illuminate\Database\QueryException $e) {
+            $owner = UserIpLock::where('ip', $ip)->value('user_id');
+
+            return (int) $owner === $userId;
         }
     }
 }
