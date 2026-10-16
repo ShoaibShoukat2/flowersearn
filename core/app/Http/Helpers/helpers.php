@@ -1464,6 +1464,58 @@ if (!function_exists('depositDetailItems')) {
     }
 }
 
+if (!function_exists('safeAttachmentPath')) {
+    function safeAttachmentPath(string $fileHash): string
+    {
+        try {
+            $filePath = decrypt($fileHash);
+        } catch (\Throwable $e) {
+            abort(404);
+        }
+
+        if (!is_string($filePath) || $filePath === '' || str_contains($filePath, "\0") || str_contains($filePath, '..')) {
+            abort(404);
+        }
+
+        $real = null;
+        $isAbsolute = str_starts_with($filePath, '/') || preg_match('/^[A-Za-z]:[\\\\\\/]/', $filePath);
+        if ($isAbsolute) {
+            $real = realpath($filePath);
+        } else {
+            $relative = ltrim(str_replace('\\', '/', $filePath), '/');
+            $candidates = [
+                base_path($relative),
+                public_path($relative),
+                dirname(base_path()) . DIRECTORY_SEPARATOR . $relative,
+            ];
+            foreach ($candidates as $candidate) {
+                $resolved = realpath($candidate);
+                if ($resolved && is_file($resolved)) {
+                    $real = $resolved;
+                    break;
+                }
+            }
+        }
+
+        $project = realpath(dirname(base_path()));
+        if (!$real || !is_file($real) || !$project || !str_starts_with($real, $project . DIRECTORY_SEPARATOR)) {
+            abort(404);
+        }
+
+        $name = strtolower(basename($real));
+        $extension = strtolower(pathinfo($real, PATHINFO_EXTENSION));
+        if (
+            $name === '.env'
+            || str_starts_with($name, '.env')
+            || in_array($extension, ['php', 'phtml', 'phar', 'cgi', 'pl', 'sh', 'sql', 'ini', 'bak', 'env'], true)
+        ) {
+            abort(404);
+        }
+
+        return $real;
+    }
+}
+
 if (!function_exists('depositProofFiles')) {
     function depositProofFiles($deposit): array
     {

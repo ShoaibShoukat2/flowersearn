@@ -77,7 +77,7 @@ class PlanUpgradeController extends Controller
             'plan_id' => 'required|integer|exists:plans,id',
             'sender_name' => 'required|string|max:100',
             'sender_number' => 'required|string|max:30',
-            'screenshot' => 'required|file|mimes:jpg,jpeg,png,webp',
+            'screenshot' => 'required|file|mimes:jpg,jpeg,png,webp|max:5120',
             'method_code' => $gateways->count() ? 'required|integer' : 'nullable|integer',
         ], [
             'screenshot.required' => 'Please upload the payment screenshot.',

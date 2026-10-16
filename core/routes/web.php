@@ -27,7 +27,7 @@ Route::middleware('auth')->get('/about', function () {
     return view('templates.basic.sections.about');
 })->name('about');
 
-Route::get('/user/wallet', function () {
+Route::middleware('auth')->get('/user/wallet', function () {
     return view('templates.basic.user.wallet');
 })->name('user.wallet');
 
@@ -45,36 +45,13 @@ Route::get('/user/guide', function () {
 });
 
 
-Route::get('/clear-caches', function () {
-    $output = new \Symfony\Component\Console\Output\BufferedOutput;
-    
-    \Illuminate\Support\Facades\Artisan::call('cache:clear', [], $output);
-    echo "Cache cleared<br>";
-    
-    \Illuminate\Support\Facades\Artisan::call('route:clear', [], $output);
-    echo "Routes cleared<br>";
-    
-    \Illuminate\Support\Facades\Artisan::call('config:clear', [], $output);
-    echo "Config cleared<br>";
-    
-    \Illuminate\Support\Facades\Artisan::call('view:clear', [], $output);
-    echo "Views cleared<br>";
-    
-    echo "<strong>All done! Remove this route for security.</strong>";
-});
-
-
-Route::get('/clear', function(){
-    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-});
-
 // User Support Ticket
 Route::controller('TicketController')->prefix('ticket')->group(function () {
     Route::get('/', 'supportTicket')->name('ticket');
     Route::get('/new', 'openSupportTicket')->name('ticket.open');
-    Route::post('/create', 'storeSupportTicket')->name('ticket.store');
+    Route::post('/create', 'storeSupportTicket')->name('ticket.store')->middleware('throttle:5,1');
     Route::get('/view/{ticket}', 'viewTicket')->name('ticket.view');
-    Route::post('/reply/{ticket}', 'replyTicket')->name('ticket.reply');
+    Route::post('/reply/{ticket}', 'replyTicket')->name('ticket.reply')->middleware('throttle:10,1');
     Route::post('/close/{ticket}', 'closeTicket')->name('ticket.close');
     Route::get('/download/{ticket}', 'ticketDownload')->name('ticket.download');
 });
@@ -84,7 +61,7 @@ Route::get('app/deposit/confirm/{hash}', 'Gateway\PaymentController@appDepositCo
 
 Route::controller('SiteController')->group(function () {
     Route::get('/contact', 'contact')->name('contact');
-    Route::post('/contact', 'contactSubmit');
+    Route::post('/contact', 'contactSubmit')->middleware('throttle:5,1');
     Route::get('/change/{lang?}', 'changeLanguage')->name('lang');
 
     Route::get('cookie-policy', 'cookiePolicy')->name('cookie.policy');

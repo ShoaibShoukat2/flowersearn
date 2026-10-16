@@ -10,24 +10,24 @@ Route::namespace('User\Auth')->name('user.')->group(function () {
 
     Route::controller('LoginController')->group(function(){
         Route::get('/login', 'showLoginForm')->name('login');
-        Route::post('/login', 'login');
+        Route::post('/login', 'login')->middleware('throttle:5,1');
         Route::get('logout', 'logout')->name('logout');
     });
 
     Route::controller('RegisterController')->group(function(){
         Route::get('register', 'showRegistrationForm')->name('register');
-        Route::post('register', 'register')->middleware('registration.status');
-        Route::post('check-mail', 'checkUser')->name('checkUser');
+        Route::post('register', 'register')->middleware(['registration.status', 'throttle:3,1']);
+        Route::post('check-mail', 'checkUser')->name('checkUser')->middleware('throttle:10,1');
     });
 
     Route::controller('ForgotPasswordController')->group(function(){
         Route::get('password/reset', 'showLinkRequestForm')->name('password.request');
-        Route::post('password/email', 'sendResetCodeEmail')->name('password.email');
+        Route::post('password/email', 'sendResetCodeEmail')->name('password.email')->middleware('throttle:5,1');
         Route::get('password/code-verify', 'codeVerify')->name('password.code.verify');
-        Route::post('password/verify-code', 'verifyCode')->name('password.verify.code');
+        Route::post('password/verify-code', 'verifyCode')->name('password.verify.code')->middleware('throttle:5,1');
     });
     Route::controller('ResetPasswordController')->group(function(){
-        Route::post('password/reset', 'reset')->name('password.update');
+        Route::post('password/reset', 'reset')->name('password.update')->middleware('throttle:5,1');
         Route::get('password/reset/{token}', 'showResetForm')->name('password.reset');
     });
 });
@@ -83,7 +83,7 @@ Route::middleware('auth')->name('user.')->group(function () {
 
                 //Balance Transfer
                 Route::get('transfer-balance','transfer')->name('transfer.balance');
-                Route::post('transfer-balance','transferSubmit');
+                Route::post('transfer-balance','transferSubmit')->middleware('throttle:10,1');
             });
 
             //Profile setting
@@ -99,9 +99,9 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::controller('WithdrawController')->prefix('withdraw')->name('withdraw')->group(function(){
                 Route::middleware('kyc')->group(function(){
                     Route::get('/', 'withdrawMoney');
-                    Route::post('/', 'withdrawStore')->name('.money');
+                    Route::post('/', 'withdrawStore')->name('.money')->middleware('throttle:5,1');
                     Route::get('preview', 'withdrawPreview')->name('.preview');
-                    Route::post('preview', 'withdrawSubmit')->name('.submit');
+                    Route::post('preview', 'withdrawSubmit')->name('.submit')->middleware('throttle:5,1');
                 });
             });
 
@@ -109,10 +109,10 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::controller('PtcController')->name('ptc.')->prefix('ptc')->group(function(){
                 Route::get('/','index')->name('index');
                 Route::get('show/{hash}','show')->name('show');
-                Route::post('confirm/{hash}','confirm')->name('confirm');
+                Route::post('confirm/{hash}','confirm')->name('confirm')->middleware('throttle:30,1');
                 Route::get('my-ads','ads')->name('ads');
                 Route::get('create','create')->name('create');
-                Route::post('store','store')->name('store');
+                Route::post('store','store')->name('store')->middleware('throttle:5,1');
                 Route::get('edit/{id}','edit')->name('edit');
                 Route::post('update/{id}','update')->name('update');
                 Route::get('status/{id}','status')->name('status');
@@ -126,17 +126,17 @@ Route::middleware('auth')->name('user.')->group(function () {
 
             Route::controller('PlanUpgradeController')->prefix('plan-upgrade')->name('plan.upgrade.')->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::post('/', 'submit')->name('submit');
+                Route::post('/', 'submit')->name('submit')->middleware('throttle:5,1');
             });
         });
 
         // Payment
         Route::middleware('registration.complete')->controller('Gateway\PaymentController')->group(function(){
             Route::any('/deposit', 'deposit')->name('deposit');
-            Route::post('deposit/insert', 'depositInsert')->name('deposit.insert');
+            Route::post('deposit/insert', 'depositInsert')->name('deposit.insert')->middleware('throttle:5,1');
             Route::get('deposit/confirm', 'depositConfirm')->name('deposit.confirm');
             Route::get('deposit/manual', 'manualDepositConfirm')->name('deposit.manual.confirm');
-            Route::post('deposit/manual', 'manualDepositUpdate')->name('deposit.manual.update');
+            Route::post('deposit/manual', 'manualDepositUpdate')->name('deposit.manual.update')->middleware('throttle:5,1');
         });
     });
 });

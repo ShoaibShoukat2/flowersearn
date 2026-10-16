@@ -316,7 +316,7 @@ class UserController extends Controller
 
     public function attachmentDownload($fileHash)
     {
-        $filePath = decrypt($fileHash);
+        $filePath = safeAttachmentPath($fileHash);
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
         $general = gs();
         $title = slug($general->site_name) . base64_decode('LSBhdHRhY2htZW50cy4=') . $extension;

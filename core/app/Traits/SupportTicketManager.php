@@ -231,9 +231,18 @@ trait SupportTicketManager
     public function ticketDownload($ticket_id)
     {
         $attachment = SupportAttachment::findOrFail(decrypt($ticket_id));
-        $file = $attachment->attachment;
+        $file = basename((string) $attachment->attachment);
+        if ($file === '' || $file === '.' || $file === '..' || !preg_match('/^[A-Za-z0-9._-]+$/', $file)) {
+            abort(404);
+        }
         $path = getFilePath('ticket');
         $full_path = $path . '/' . $file;
+        $real = realpath($full_path);
+        $root = realpath($path);
+        if (!$real || !$root || !is_file($real) || !str_starts_with($real, $root . DIRECTORY_SEPARATOR)) {
+            abort(404);
+        }
+        $full_path = $real;
         $title = slug($attachment->supportMessage->ticket->subject);
         $ext = pathinfo($file, PATHINFO_EXTENSION);
         $mimetype = mime_content_type($full_path);

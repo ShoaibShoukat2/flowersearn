@@ -292,7 +292,7 @@ $withdrawals['today_total_withdraw_charge']  = Withdrawal::approved()->whereDate
 
     public function downloadAttachment($fileHash)
     {
-        $filePath = decrypt($fileHash);
+        $filePath = safeAttachmentPath($fileHash);
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
         $general = gs();
         $title = slug($general->site_name).'- attachments.'.$extension;

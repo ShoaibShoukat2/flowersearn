@@ -101,6 +101,12 @@ class PaymentController extends Controller
             return back()->withNotify($notify);
         }
 
+        $openRequests = Deposit::where('user_id', $user->id)->whereIn('status', [0, 2])->count();
+        if ($openRequests >= 3) {
+            $notify[] = ['error', 'You already have a payment request in progress.'];
+            return back()->withNotify($notify);
+        }
+
         $charge = (float) $gate->fixed_charge + ($amount * (float) $gate->percent_charge / 100);
         $payable = $amount + $charge;
         $final_amo = $payable * (float) $gate->rate;
@@ -393,7 +399,7 @@ class PaymentController extends Controller
             $validationRule['sender_number'] = 'required|string|max:30';
         }
         if ($prepared['needs_screenshot']) {
-            $validationRule['payment_screenshot'] = 'required|file|mimes:jpg,jpeg,png,webp';
+            $validationRule['payment_screenshot'] = 'required|file|mimes:jpg,jpeg,png,webp|max:5120';
         }
         $request->validate($validationRule, [
             'payment_screenshot.required' => 'Please upload the payment screenshot.',

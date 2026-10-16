@@ -147,8 +147,14 @@ class SiteController extends Controller
     }
 
     public function placeholderImage($size = null){
-        $imgWidth = explode('x',$size)[0];
-        $imgHeight = explode('x',$size)[1];
+        if (!is_string($size) || !preg_match('/^(\d{1,4})x(\d{1,4})$/', $size, $match)) {
+            abort(404);
+        }
+        $imgWidth = (int) $match[1];
+        $imgHeight = (int) $match[2];
+        if ($imgWidth < 1 || $imgHeight < 1 || $imgWidth > 1200 || $imgHeight > 1200) {
+            abort(404);
+        }
         $text = $imgWidth . '×' . $imgHeight;
         $fontFile = realpath('assets/font') . DIRECTORY_SEPARATOR . 'RobotoMono-Regular.ttf';
         $fontSize = round(($imgWidth - 50) / 8);
