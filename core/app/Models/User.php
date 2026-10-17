@@ -69,11 +69,6 @@ class User extends Authenticatable
         return $this->hasMany(UserLogin::class);
     }
 
-    public function ipLocks()
-    {
-        return $this->hasMany(UserIpLock::class);
-    }
-
     public function transactions()
     {
         return $this->hasMany(Transaction::class)->orderBy('id','desc');

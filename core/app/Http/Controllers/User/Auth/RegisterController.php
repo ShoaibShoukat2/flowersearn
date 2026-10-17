@@ -9,7 +9,6 @@ use App\Models\UserLogin;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -81,25 +80,8 @@ class RegisterController extends Controller
 
         $this->validator($request->all())->validate();
 
-        if (ipAccountOwnerId()) {
-            $notify[] = ['error', ipAccountLimitMessage()];
-            return back()
-                ->withInput($request->except('password', 'password_confirmation'))
-                ->withNotify($notify);
-        }
-
         try {
-            $user = DB::transaction(function () use ($request) {
-                $user = $this->create($request->all());
-                if (!claimIpForUser((int) $user->id)) {
-                    throw ValidationException::withMessages([
-                        'email' => [ipAccountLimitMessage()],
-                    ]);
-                }
-
-                return $user;
-            });
-            event(new Registered($user));
+            event(new Registered($user = $this->create($request->all())));
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {

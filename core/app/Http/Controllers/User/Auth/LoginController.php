@@ -34,8 +34,6 @@ class LoginController extends Controller
 
     protected $attemptedUser;
 
-    protected $ipBlocked = false;
-
     /**
      * Create a new controller instance.
      *
@@ -109,14 +107,6 @@ class LoginController extends Controller
             return false;
         }
 
-        if (!accountPredatesIpLock($this->attemptedUser)) {
-            $ownerId = ipAccountOwnerId();
-            if ($ownerId && $ownerId !== (int) $this->attemptedUser->id) {
-                $this->ipBlocked = true;
-                return false;
-            }
-        }
-
         $this->guard()->login($this->attemptedUser, $request->boolean('remember'));
 
         return true;
@@ -124,13 +114,9 @@ class LoginController extends Controller
 
     protected function sendFailedLoginResponse(Request $request)
     {
-        if ($this->ipBlocked) {
-            $message = ipAccountLimitMessage();
-        } else {
-            $message = $this->attemptedUser
-                ? 'Incorrect Password'
-                : trans('auth.failed');
-        }
+        $message = $this->attemptedUser
+            ? 'Incorrect Password'
+            : trans('auth.failed');
 
         throw ValidationException::withMessages([
             'username' => [$message],
@@ -160,16 +146,6 @@ class LoginController extends Controller
 
     public function authenticated(Request $request, $user)
     {
-        if (accountPredatesIpLock($user)) {
-            reserveIpIfFree((int) $user->id);
-        } elseif (!claimIpForUser((int) $user->id)) {
-            $this->guard()->logout();
-            $request->session()->invalidate();
-
-            $notify[] = ['error', ipAccountLimitMessage()];
-            return to_route('user.login')->withNotify($notify);
-        }
-
         $user->tv = $user->ts == 1 ? 0 : 1;
         $user->save();
         $ip = getRealIP();

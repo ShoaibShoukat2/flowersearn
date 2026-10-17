@@ -131,32 +131,6 @@
                 </div>
             </div>
 
-            <div class="card mt-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">@lang('IP Lock')</h5>
-                    @if($ipLocks->count())
-                        <form action="{{ route('admin.users.ip.release', $user->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn--warning btn-sm">
-                                <i class="las la-unlock"></i> @lang('Release IP')
-                            </button>
-                        </form>
-                    @endif
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-2">@lang('Accounts that already existed can still sign in. A new account cannot register or sign in from a locked IP.')</p>
-                    @if($ipLocks->count())
-                        <ul class="mb-0">
-                            @foreach($ipLocks as $lock)
-                                <li><code>{{ $lock->ip }}</code></li>
-                            @endforeach
-                        </ul>
-                    @else
-                        <p class="mb-0">@lang('No IP is locked to this account yet.')</p>
-                    @endif
-                </div>
-            </div>
-
             <div class="row gy-4 mt-1">
                 <div class="col-md-6">
                     <div class="card h-100">
