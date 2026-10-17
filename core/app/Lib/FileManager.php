@@ -167,6 +167,9 @@ class FileManager
 	}
 
 	protected function resolvePath($location){
+		if (str_contains((string) $location, '..') || str_contains((string) $location, "\0")) {
+			throw new \Exception('Invalid upload path.');
+		}
 		if (!$location || $location[0] === '/' || preg_match('/^[A-Za-z]:[\\\\\\/]/', $location)) {
 			return $location;
 		}
@@ -226,22 +229,30 @@ class FileManager
     *
     * @return string
     */
-	protected function assertSafeUpload(): void
+	protected function uploadExtension(): string
 	{
 		$name = strtolower((string) $this->file->getClientOriginalName());
-		if (preg_match('/\.(php\d*|phtml|phar|cgi|pl|asp|aspx|jsp|sh|exe|dll|htaccess|shtml|svg)(\.|$)/', $name)) {
+		if (str_contains($name, '/') || str_contains($name, '\\') || str_contains($name, '..')) {
 			throw new \Exception('This file type is not allowed.');
 		}
+
+		$extension = strtolower((string) $this->file->getClientOriginalExtension());
+		$extension = preg_replace('/[^a-z0-9]/', '', $extension);
+		$allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf', 'ico'];
+		if (!in_array($extension, $allowed, true)) {
+			throw new \Exception('This file type is not allowed.');
+		}
+
+		return $extension;
+	}
+
+	protected function assertSafeUpload(): void
+	{
+		$this->uploadExtension();
 	}
 
 	protected function getFileName(){
-		$extension = strtolower((string) $this->file->getClientOriginalExtension());
-		$extension = preg_replace('/[^a-z0-9]/', '', $extension);
-		if ($extension === '' || preg_match('/php|phtml|phar|cgi|asp|jsp|htaccess/', $extension)) {
-			throw new \Exception('This file type is not allowed.');
-		}
-
-		return uniqid() . time() . '.' . $extension;
+		return uniqid() . time() . '.' . $this->uploadExtension();
 	}
 
     /**

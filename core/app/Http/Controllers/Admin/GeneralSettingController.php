@@ -274,8 +274,14 @@ class GeneralSettingController extends Controller
 
         \Illuminate\Support\Facades\Cache::forget('GeneralSetting');
 
+        $timezone = (string) $request->timezone;
+        if (!in_array($timezone, timezone_identifiers_list(), true)) {
+            $notify[] = ['error', 'Please choose a valid timezone.'];
+            return back()->withNotify($notify);
+        }
+
         $timezoneFile = config_path('timezone.php');
-        $content = '<?php $timezone = ' . $request->timezone . ' ?>';
+        $content = '<?php $timezone = ' . var_export($timezone, true) . ';' . PHP_EOL;
         file_put_contents($timezoneFile, $content);
         $notify[] = ['success', 'General setting updated successfully'];
         return back()->withNotify($notify);
@@ -351,21 +357,33 @@ class GeneralSettingController extends Controller
     public function customCss()
     {
         $pageTitle = 'Custom CSS';
-        $file = activeTemplate(true) . 'css/custom.css';
-        $file_content = @file_get_contents($file);
+        $file = $this->customCssFile();
+        $file_content = is_file($file) ? file_get_contents($file) : '';
         return view('admin.setting.custom_css', compact('pageTitle', 'file_content'));
     }
 
 
     public function customCssSubmit(Request $request)
     {
-        $file = activeTemplate(true) . 'css/custom.css';
-        if (!file_exists($file)) {
-            fopen($file, "w");
-        }
-        file_put_contents($file, $request->css);
+        $file = $this->customCssFile();
+        file_put_contents($file, (string) $request->css);
         $notify[] = ['success', 'CSS updated successfully'];
         return back()->withNotify($notify);
+    }
+
+    protected function customCssFile(): string
+    {
+        $template = basename((string) (gs()->active_template ?: 'basic'));
+        if (!preg_match('/^[A-Za-z0-9_-]+$/', $template)) {
+            $template = 'basic';
+        }
+
+        $directory = public_path('assets/templates/' . $template . '/css');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        return $directory . DIRECTORY_SEPARATOR . 'custom.css';
     }
 
     public function maintenanceMode()
