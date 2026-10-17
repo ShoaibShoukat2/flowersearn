@@ -72,6 +72,7 @@ Route::middleware('admin')->group(function () {
         Route::post('status/{id}', 'status')->name('status');
         Route::post('password/{id}', 'changePassword')->name('password');
         Route::post('re-approve/{id}', 'reApprove')->name('reapprove');
+        Route::post('release-ip/{id}', 'releaseIpLock')->name('ip.release');
 
         Route::get('send-notification', 'showNotificationAllForm')->name('notification.all');
         Route::post('send-notification', 'sendNotificationAll')->name('notification.all.send');
