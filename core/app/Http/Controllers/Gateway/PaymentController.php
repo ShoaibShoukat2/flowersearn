@@ -391,7 +391,15 @@ class PaymentController extends Controller
         $formData = $prepared['fields'];
 
         $formProcessor = new FormProcessor();
+        foreach ($formData as $field) {
+            $field->is_required = 'required';
+        }
         $validationRule = $formProcessor->valueValidation($formData);
+        foreach ($formData as $field) {
+            if (($field->type ?? '') === 'file') {
+                $validationRule[$field->label] = ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
+            }
+        }
         if ($prepared['needs_sender_name']) {
             $validationRule['sender_name'] = 'required|string|max:100';
         }
@@ -435,6 +443,25 @@ class PaymentController extends Controller
                 $notify[] = ['error', 'Payment screenshot could not be saved. Please use a smaller JPG or PNG and try again.'];
                 return back()->withNotify($notify)->withInput();
             }
+        }
+
+        $hasScreenshot = false;
+        foreach ($userData as $index => $item) {
+            if (($item['type'] ?? '') === 'file') {
+                if (is_string($item['value'] ?? null) && trim($item['value']) !== '') {
+                    $hasScreenshot = true;
+                }
+                continue;
+            }
+            $userData[$index]['value'] = trim((string) ($item['value'] ?? ''));
+            if ($userData[$index]['value'] === '') {
+                $notify[] = ['error', 'Please fill every required field before submitting payment.'];
+                return back()->withNotify($notify)->withInput();
+            }
+        }
+        if (!$hasScreenshot) {
+            $notify[] = ['error', 'Please upload the payment screenshot before submitting payment.'];
+            return back()->withNotify($notify)->withInput();
         }
 
         $user = auth()->user();

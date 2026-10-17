@@ -414,9 +414,9 @@
 
                 @foreach($manualFields['fields'] as $field)
                     <div class="form-group">
-                        <label>{{ __($field->name) }} @if(($field->is_required ?? '') === 'required')<span style="color:#e91e8c;">*</span>@endif</label>
+                        <label>{{ __($field->name) }} <span style="color:#e91e8c;">*</span></label>
                         @if(($field->type ?? '') === 'textarea')
-                            <textarea name="{{ $field->label }}" @if(($field->is_required ?? '') === 'required') required @endif>{{ old($field->label) }}</textarea>
+                            <textarea name="{{ $field->label }}" required>{{ old($field->label) }}</textarea>
                         @elseif(($field->type ?? '') === 'file')
                             @php
                                 $shotAccept = collect(explode(',', manualFieldExtensions($field)))
@@ -425,7 +425,7 @@
                                     ->implode(',');
                             @endphp
                             <label class="mn-shot">
-                                <input type="file" name="{{ $field->label }}" @if(($field->is_required ?? '') === 'required') required @endif accept="{{ $shotAccept }},image/jpeg,image/png,image/webp">
+                                <input type="file" name="{{ $field->label }}" required accept="{{ $shotAccept }},image/jpeg,image/png,image/webp">
                                 <img class="mn-shot-preview" alt="Uploaded file preview">
                                 <span class="mn-shot-placeholder">
                                     <i class="fas fa-image"></i>
@@ -435,14 +435,14 @@
                             </label>
                             <small class="mn-shot-hint"></small>
                         @elseif(($field->type ?? '') === 'select')
-                            <select name="{{ $field->label }}" @if(($field->is_required ?? '') === 'required') required @endif>
+                            <select name="{{ $field->label }}" required>
                                 <option value="">@lang('Select One')</option>
                                 @foreach(manualFieldOptions($field) as $option)
                                     <option value="{{ $option }}">{{ __($option) }}</option>
                                 @endforeach
                             </select>
                         @else
-                            <input type="text" name="{{ $field->label }}" value="{{ old($field->label) }}" placeholder="{{ manualFieldPlaceholder($field) }}" @if(($field->is_required ?? '') === 'required') required @endif>
+                            <input type="text" name="{{ $field->label }}" value="{{ old($field->label) }}" placeholder="{{ manualFieldPlaceholder($field) }}" required>
                         @endif
                     </div>
                 @endforeach
