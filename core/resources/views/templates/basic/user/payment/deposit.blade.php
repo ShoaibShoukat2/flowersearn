@@ -5,7 +5,9 @@
 @php
     $user        = auth()->user();
     $plans       = \App\Models\Plan::where('status', 1)->get();
-    $runningPlanId = $user ? $user->plan_id : 0;
+    $pendingDeposit = $user
+        ? \App\Models\Deposit::where('user_id', $user->id)->where('status', 2)->latest('id')->first()
+        : null;
 
     $planEmojis  = ['🌱','🌿','🌸','💐','🌺'];
     $planColors  = [
@@ -239,6 +241,15 @@
         <p>Select a plan that fits your goals and start earning</p>
     </div>
 
+    @if($pendingDeposit)
+        <div class="dep-alert warn">
+            <i class="fas fa-hourglass-half"></i>
+            <div>
+                <strong>Payment request already sent</strong><br>
+                Your request is waiting for approval. You cannot send a new payment request until this one is approved.
+            </div>
+        </div>
+    @else
     <form action="{{ route('user.deposit.insert') }}" method="post">
         @csrf
         <input type="hidden" name="amount"  id="selected_amount" value="">
@@ -310,6 +321,7 @@
             <i class="fas fa-arrow-right"></i> Proceed to Payment
         </button>
     </form>
+    @endif
 
 </div>
 

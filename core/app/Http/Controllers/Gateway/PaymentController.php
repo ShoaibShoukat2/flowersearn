@@ -101,9 +101,8 @@ class PaymentController extends Controller
             return back()->withNotify($notify);
         }
 
-        $openRequests = Deposit::where('user_id', $user->id)->whereIn('status', [0, 2])->count();
-        if ($openRequests >= 3) {
-            $notify[] = ['error', 'You already have a payment request in progress.'];
+        if ($this->pendingDepositFor($user->id)) {
+            $notify[] = ['error', 'Your payment request is waiting for approval. You cannot send another request until this one is approved.'];
             return back()->withNotify($notify);
         }
 
@@ -341,6 +340,10 @@ class PaymentController extends Controller
             $notify[] = ['error', 'Payment session expired. Please select your package again.'];
             return to_route('user.deposit')->withNotify($notify);
         }
+        if ($this->pendingDepositFor($data->user_id)) {
+            $notify[] = ['error', 'Your payment request is waiting for approval. You cannot send another request until this one is approved.'];
+            return to_route('user.deposit')->withNotify($notify);
+        }
 
         [$method, $gateway] = $this->paymentGatewayFor($data);
         if (!$method && !$gateway) {
@@ -378,6 +381,11 @@ class PaymentController extends Controller
         return [$currency, $gateway];
     }
 
+    protected function pendingDepositFor($userId): ?Deposit
+    {
+        return Deposit::where('user_id', $userId)->where('status', 2)->latest('id')->first();
+    }
+
     public function manualDepositUpdate(Request $request)
     {
         $track = session()->get('Track');
@@ -385,6 +393,10 @@ class PaymentController extends Controller
         $data = Deposit::with('gateway')->where('status', 0)->where('trx', $track)->first();
         if (!$data) {
             return to_route(gatewayRedirectUrl());
+        }
+        if ($this->pendingDepositFor($data->user_id)) {
+            $notify[] = ['error', 'Your payment request is waiting for approval. You cannot send another request until this one is approved.'];
+            return to_route('user.deposit')->withNotify($notify);
         }
         [, $gateway] = $this->paymentGatewayFor($data);
         $prepared = prepareManualDepositFields($gateway ? optional($gateway->form)->form_data : []);
@@ -486,6 +498,11 @@ class PaymentController extends Controller
         }
 
         $user->save();
+
+        if ($this->pendingDepositFor($user->id)) {
+            $notify[] = ['error', 'Your payment request is waiting for approval. You cannot send another request until this one is approved.'];
+            return to_route('user.deposit')->withNotify($notify);
+        }
 
         $data->detail = $userData;
         $data->status = 2; // pending
