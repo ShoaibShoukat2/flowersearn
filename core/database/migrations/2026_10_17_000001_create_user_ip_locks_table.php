@@ -17,9 +17,6 @@ return new class extends Migration
             });
         }
 
-        if (function_exists('backfillUserIpLocks')) {
-            backfillUserIpLocks();
-        }
     }
 
     public function down(): void

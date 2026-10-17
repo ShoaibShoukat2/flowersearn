@@ -6,7 +6,6 @@ use App\Models\Deposit;
 use App\Models\NotificationLog;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Models\UserIpLock;
 use App\Models\PtcEarn;
 use App\Models\Plan;
 use App\Models\Withdrawal;
@@ -183,8 +182,6 @@ public function Today()
         $teamScope = in_array(request('team_scope'), ['today', 'team'], true) ? request('team_scope') : 'team';
         $team = $this->teamMembers($user, $teamStatus, $teamScope, request('team_search'));
         $teamCounts = $this->teamCounts($user);
-        ensureUserIpLocks();
-        $ipLocks = UserIpLock::where('user_id', $user->id)->orderBy('id')->get();
 
         return view('admin.users.detail', compact(
             'pageTitle',
@@ -200,8 +197,7 @@ public function Today()
             'team',
             'teamCounts',
             'teamStatus',
-            'teamScope',
-            'ipLocks'
+            'teamScope'
         ));
     }
 
@@ -453,19 +449,6 @@ public function Today()
     public function login($id){
         Auth::loginUsingId($id);
         return to_route('user.home');
-    }
-
-    public function releaseIpLock($id)
-    {
-        $user = User::findOrFail($id);
-        ensureUserIpLocks();
-        $released = UserIpLock::where('user_id', $user->id)->delete();
-
-        $notify[] = ['success', $released
-            ? 'IP lock released. A different account can now use this network.'
-            : 'This user has no locked IP address.'];
-
-        return back()->withNotify($notify);
     }
 
     public function status(Request $request,$id)
