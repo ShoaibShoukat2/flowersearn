@@ -97,6 +97,7 @@ class FileManager
     * @return void
     */
 	public function upload(){
+        $this->assertSafeUpload();
 
         $this->path = $this->resolvePath($this->path);
 
@@ -225,8 +226,22 @@ class FileManager
     *
     * @return string
     */
+	protected function assertSafeUpload(): void
+	{
+		$name = strtolower((string) $this->file->getClientOriginalName());
+		if (preg_match('/\.(php\d*|phtml|phar|cgi|pl|asp|aspx|jsp|sh|exe|dll|htaccess|shtml|svg)(\.|$)/', $name)) {
+			throw new \Exception('This file type is not allowed.');
+		}
+	}
+
 	protected function getFileName(){
-		return uniqid() . time() . '.' . $this->file->getClientOriginalExtension();
+		$extension = strtolower((string) $this->file->getClientOriginalExtension());
+		$extension = preg_replace('/[^a-z0-9]/', '', $extension);
+		if ($extension === '' || preg_match('/php|phtml|phar|cgi|asp|jsp|htaccess/', $extension)) {
+			throw new \Exception('This file type is not allowed.');
+		}
+
+		return uniqid() . time() . '.' . $extension;
 	}
 
     /**

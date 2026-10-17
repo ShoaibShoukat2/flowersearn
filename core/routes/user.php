@@ -36,7 +36,7 @@ Route::middleware('auth')->name('user.')->group(function () {
     //authorization
     Route::namespace('User')->controller('AuthorizationController')->group(function(){
         Route::get('authorization', 'authorizeForm')->name('authorization');
-        Route::get('resend-verify/{type}', 'sendVerifyCode')->name('send.verify.code');
+        Route::get('resend-verify/{type}', 'sendVerifyCode')->name('send.verify.code')->middleware('throttle:3,1');
         Route::post('verify-email', 'emailVerification')->name('verify.email');
         Route::post('verify-mobile', 'mobileVerification')->name('verify.mobile');
         Route::post('verify-g2fa', 'g2faVerification')->name('go2fa.verify');

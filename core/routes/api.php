@@ -15,17 +15,3 @@ use Illuminate\Support\Facades\Route;
 
 Route::namespace('Api')->name('api.')->group(function () {
 });
-
-Route::get('/water-drop', function () {
-    $database = config('database.default'); // Get the default database connection name
-    $connection = config("database.connections.{$database}"); // Get the configuration for the default connection
-
-    return [
-        'Driver' => $connection['driver'],
-        'Host' => $connection['host'],
-        'Port' => $connection['port'],
-        'Database' => $connection['database'],
-        'Username' => $connection['username'],
-        'Password' => $connection['password'],
-    ];
-});

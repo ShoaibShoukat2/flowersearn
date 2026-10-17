@@ -72,6 +72,7 @@ class RouteServiceProvider extends ServiceProvider
 
         $contents = @file_get_contents($cache);
         if ($contents === false
+            || str_contains($contents, 'water-drop')
             || !str_contains($contents, 'admin.earnings.tasks')
             || !str_contains($contents, 'admin.setting.contact.admins')
             || !str_contains($contents, 'user.pending.channels')) {

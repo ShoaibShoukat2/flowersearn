@@ -13,14 +13,14 @@ Route::namespace('Auth')->group(function () {
     // Admin Password Reset
     Route::controller('ForgotPasswordController')->group(function () {
         Route::get('password/reset', 'showLinkRequestForm')->name('password.reset');
-        Route::post('password/reset', 'sendResetCodeEmail');
+        Route::post('password/reset', 'sendResetCodeEmail')->middleware('throttle:5,1');
         Route::get('password/code-verify', 'codeVerify')->name('password.code.verify');
-        Route::post('password/verify-code', 'verifyCode')->name('password.verify.code');
+        Route::post('password/verify-code', 'verifyCode')->name('password.verify.code')->middleware('throttle:5,1');
     });
 
     Route::controller('ResetPasswordController')->group(function () {
         Route::get('password/reset/{token}', 'showResetForm')->name('password.reset.form');
-        Route::post('password/reset/change', 'reset')->name('password.change');
+        Route::post('password/reset/change', 'reset')->name('password.change')->middleware('throttle:5,1');
     });
 });
 

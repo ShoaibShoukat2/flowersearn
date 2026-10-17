@@ -42,6 +42,8 @@ class RegisterController extends Controller
             session()->put('ref', $referralCode);
         }
 
+        session()->put('register_opened_at', time());
+
         return response()
             ->view($this->activeTemplate . 'user.auth.register', compact(
                 'pageTitle',
@@ -60,6 +62,21 @@ class RegisterController extends Controller
         $request->merge(['inviter_code' => $referralCode]);
         if ($referralCode !== '') {
             session()->put('ref', $referralCode);
+        }
+
+        if (trim((string) $request->input('flower_trap')) !== '') {
+            $notify[] = ['error', 'Unable to create your account. Please try again.'];
+            return back()
+                ->withInput($request->except('password', 'password_confirmation'))
+                ->withNotify($notify);
+        }
+
+        $openedAt = (int) session('register_opened_at', 0);
+        if ($openedAt === 0 || (time() - $openedAt) < 3) {
+            $notify[] = ['error', 'Please wait a moment and submit the form again.'];
+            return back()
+                ->withInput($request->except('password', 'password_confirmation'))
+                ->withNotify($notify);
         }
 
         $this->validator($request->all())->validate();

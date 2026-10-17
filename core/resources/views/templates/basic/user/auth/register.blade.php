@@ -196,6 +196,9 @@ body{font-family:'Poppins',sans-serif;}
 
             <form class="action-form" action="/user/register" method="post" id="regForm" autocomplete="on">
                 @csrf
+                <div style="position:absolute;left:-9999px;height:0;overflow:hidden;" aria-hidden="true">
+                    <input type="text" name="flower_trap" tabindex="-1" autocomplete="off" value="">
+                </div>
                 @php $referralCode = $referralCode ?? session()->get('ref'); @endphp
 
                 {{-- Hidden fields --}}
